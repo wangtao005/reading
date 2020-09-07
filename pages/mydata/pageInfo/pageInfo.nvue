@@ -1,0 +1,510 @@
+<template>
+	<view :style="{backgroundColor: backgroundColor}">
+		<uni-nav-bar v-if="isShow" left-icon="back" leftText="返回" rightText="菜单" @clickLeft="myBookShelf" @clickRight="openDarwer"
+		 background-color="#007AFF" color='#FFFFFF' fixed="true" status-bar="true">
+			<view style="margin-left: 90rpx;" @click="upChapter"><text style="color: #FFFFFF;font-size: 34rpx;">上一章</text></view>
+			<view style="margin-left: 80rpx;" @click="downchapter"><text style="color: #FFFFFF;font-size: 34rpx;">下一章</text></view>
+		</uni-nav-bar>
+		<view @longpress="showSelectInfo" >
+			<text class="my_margin_contentText" :style="{fontSize: fontSize}" decode="true">{{contentText}}</text>
+		</view>
+		<view v-if="showFontSizeButton" class="slider-box-bottom" :style="{width:windowWidth}">
+			<slider value="40" @change="sliderChange" min="12" max="70" activeColor="#FFCC33" backgroundColor="#000000"
+			 block-color="#8A6DE9" block-size="20" show-value />
+		</view>
+		<view>
+			<uni-popup ref="popup" type="share">
+				<uni-popup-share title="背景颜色" @select="select"></uni-popup-share>
+			</uni-popup>
+		</view>
+		<uni-drawer :visible="true" ref="myDarwer">
+			<view style="padding:40rpx;">
+				<view class="uni-title"></view>
+				<view class="textcenter" style="margin-top: 150rpx;" @click="myBookShelf">书架</view>
+				<view class="textcenter" @click="search">书籍搜索</view>
+				<view class="textcenter" @click="bgColor">背景颜色</view>
+				<view class="textcenter" @click="fontSizeSet">字体大小</view>
+				<view class="textcenter" @click="chapterList">章节目录</view>
+				<view class="textcenter" @click="upChapter">上一章</view>
+				<view class="textcenter" @click="downchapter">下一章</view>
+				<view class="textcenter" @click="cancel">取消</view>
+			</view>
+		</uni-drawer>
+	</view>
+</template>
+
+<script>
+	import HTMLParser from "../../../js_sdk/html-parser/common/HTMLParser/html-parser.js"
+	import {
+		getMainText
+	} from './getMainText.js'
+	import {
+		getStrInfo,
+		getObjectInfo
+	} from '../search/bookBaseInfo.js'
+	import uniPopup from '@/components/uni-popup/uni-popup.vue'
+	import uniPopupMessage from '@/components/uni-popup/uni-popup-message.vue'
+	import uniPopupDialog from '@/components/uni-popup/uni-popup-dialog.vue'
+	import uniPopupShare from '@/components/uni-popup/uni-popup-share.vue'
+	import uniNavBar from "@/components/uni-nav-bar/uni-nav-bar.vue"
+	import uniDrawer from "@/components/uni-drawer/uni-drawer.vue"
+	var clearTimeoutFlag;
+	export default {
+		components: {
+			uniDrawer,
+			uniNavBar,
+			uniPopup,
+			uniPopupMessage,
+			uniPopupDialog,
+			uniPopupShare
+		},
+		data() {
+			return {
+				windowWidth: '', //屏幕宽度
+				backgroundColor: 'rgb(204, 232, 207)',
+				fontSize: 20 + 'px',
+				showFontSizeButton: false,
+				titleText: '',
+				contentText: '',
+				isShow: false,
+				pageShow: false, //当前页面是隐藏还是显示
+				isRequest: false,
+				currentLocationScrollTop: '', //当前位置距离最初距离
+				newChaptersScrollTop: '', //最新章节加载位置
+				info: {},
+				list: [], //章节目录数据
+
+			}
+		},
+		onLoad: function(e) { //option为object类型，会序列化上个页面传递的参数
+			this.windowWidth = (uni.getSystemInfoSync().windowWidth) * 1.0.toString() + "px";
+			this.info = getObjectInfo(e);
+			this.getText();
+			// #ifdef APP-PLUS  
+			plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
+			// #endif
+			var _this = this;
+			setTimeout(function() {
+				try {
+					var scrollTops = uni.getStorageSync(_this.info.bookId + "_scrollTop");
+					if (scrollTops) {
+						uni.pageScrollTo({
+							scrollTop: scrollTops, //位置
+							duration: 0 //滚动动画时长
+						});
+					}
+
+				} catch (e) {}
+			}, 1)
+		},
+		onHide() {
+			this.pageShow = false
+			if (this.list.length > 0) {
+				try {
+
+					uni.setStorageSync(this.info.bookId, this.list) //退出页面时将目录数据保存
+					console.log(this.info.bookName + '目录更新成功!')
+
+				} catch (e) {
+					console.log('目录更新失败!' + e)
+				}
+				try {
+					let shelfList = uni.getStorageSync("list");
+					for (var i = 0; i < shelfList.length; i++) {
+						var shelfValueBookId = shelfList[i].bookId;
+						if (this.info.bookId == shelfValueBookId) {
+							shelfList[i].readChaptersUrl = this.info.readChaptersUrl;
+							break;
+						}
+					}
+					uni.setStorageSync("list", shelfList) //退出页面时更新书架最新阅读章节
+					console.log(this.info.bookName + '最新阅读更新成功!')
+				} catch (e) {
+					console.log('最新阅读更新失败!' + e)
+				}
+			}
+		},
+		onShow() {
+			this.pageShow = true
+		},
+		onUnload(option) {
+			// #ifdef APP-PLUS  
+			plus.navigator.setFullscreen(false); //状态栏
+			// #endif
+			if (this.pageShow) {
+				try {
+					uni.setStorageSync(this.info.bookId, this.list) //退出页面时将目录数据保存
+					console.log(this.info.bookName + '目录更新成功!')
+				} catch (e) {
+					console.log('目录更新失败!' + e)
+				}
+				try {
+					let shelfList = uni.getStorageSync("list");
+					for (var i = 0; i < shelfList.length; i++) {
+						var shelfValueBookId = shelfList[i].bookId;
+						if (this.info.bookId == shelfValueBookId) {
+							shelfList[i].readChaptersUrl = this.info.readChaptersUrl;
+							break;
+						}
+					}
+					uni.setStorageSync("list", shelfList) //退出页面时更新书架最新阅读章节
+					console.log(this.info.bookName + '最新阅读更新成功!')
+				} catch (e) {
+					console.log('最新阅读更新失败!' + e)
+				}
+				try {
+					uni.setStorageSync(this.info.bookId + "_scrollTop", this.currentLocationScrollTop - this.newChaptersScrollTop)
+				} catch (e) {
+					console.log('滚动位置设置失败!' + e)
+				}
+			}
+		},
+		methods: {
+			async getText() {
+				let content_this = this;
+				//获取书籍目录
+				try {
+					if (content_this.info.bookId) {
+						content_this.list = uni.getStorageSync(content_this.info.bookId);
+					}
+				} catch (e) {
+					console.log('获取书籍目录失败!' + e)
+				}
+				let infoData = getStrInfo(content_this.info); //组装跳转页面参数
+				let url = content_this.info.readChaptersUrl //上一次阅读
+				if (url == 'undefined' || url.indexOf("http") == -1) { //未读的就从第一章开始
+					if (content_this.list.length > 0) {
+						url = content_this.list[0].chapterUrl;
+						content_this.info.readChaptersUrl = url;
+					}
+				}
+				if (url.indexOf("http") == -1) { //第一章url获取失败就进入目录页面
+					uni.showModal({
+						title: '提示',
+						content: '进入阅读失败,是否跳转到该书籍目录',
+						success: function(res) {
+							if (res.confirm) {
+								uni.navigateTo({
+									url: '/pages/mydata/search/bookChapterList' + infoData
+								})
+							} else {}
+						}
+					});
+				} else {
+					//查看是否本章节有缓存,有就直接取缓存
+					try {
+						var bookChapterList = content_this.list;
+						for (var n = 0; n < bookChapterList.length; n++) {
+							var chapterlistInfo = bookChapterList[n];
+							chapterlistInfo.isReading = false;
+							if (chapterlistInfo.chapterUrl.trim() == url.trim()) {
+								var contenttext = chapterlistInfo.chapterData;
+								if (contenttext.trim().length > 0) {
+									chapterlistInfo.isReading = true;
+									content_this.titleText = chapterlistInfo.chapterName;
+									content_this.contentText = "\n\n\n" + this.titleText + "\n\n\n\n" + contenttext;
+								}
+							}
+						}
+					} catch (e) {
+
+					}
+
+					if (content_this.contentText.length > 0) {
+						return;
+					}
+					//同步取内容
+					var textObj = await getMainText(url, content_this.info.code);
+					content_this.titleText = textObj.title;
+					content_this.contentText = "\n\n\n" + content_this.titleText + "\n\n\n\n" + textObj.content;
+					for (var i = 0; i < content_this.list.length; i++) {
+						if (content_this.list[i].chapterName.trim() === textObj.title.trim()) {
+							content_this.list[i].chapterData = textObj.content;
+							content_this.list[i].isReading = true;
+							console.log("更新章节添加内容为缓存")
+							try {
+								uni.setStorageSync(content_this.info.bookId, content_this.list) //退出页面时将目录数据保存
+								console.log(content_this.info.bookName + '目录更新成功!')
+							} catch (e) {
+								console.log('目录更新失败!' + e)
+							}
+						}
+						return;
+					}
+				}
+			},
+			showSelectInfo() {
+				if (this.isShow) {
+					// #ifdef APP-PLUS
+					plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
+					// #endif
+				} else {
+					// #ifdef APP-PLUS
+					plus.navigator.setFullscreen(false); //状态栏
+					// #endif
+				}
+				this.isShow = !this.isShow;
+				this.$refs.myDarwer.close();
+			},
+			chapterList() { //跳转到章节列表
+				let datainfo = getStrInfo(this.info);
+				uni.navigateTo({
+					url: '/pages/mydata/search/bookChapterList' + datainfo
+				})
+
+			},
+			async upChapter(isNextChapter) { //上一章
+				this.showSelectInfo();
+				if (this.list.length == 0) {
+					uni.showToast({
+						title: '哎呀........没有可用信息! 加入书架后在试试',
+						icon: 'none',
+						duration: 2000
+					});
+					return;
+				}
+
+				let _this = this;
+				//获取当前章节 readChaptersUrl
+				for (var i = 0; i < this.list.length; i++) {
+					if (this.list[i].chapterUrl.trim() === this.info.readChaptersUrl.trim()) {
+						var uptext = this.list[i - 1];
+						if (isNextChapter == true) {
+							uptext = this.list[i + 1];
+						}
+						uptext.isReading = true;
+						this.list[i].isReading = false;
+						this.titleText = uptext.chapterName;
+						if (uptext.chapterData.length > 0) {
+							this.contentText = "\n\n\n\n" + this.titleText + "\n\n\n\n\n" + uptext.chapterData;
+						} else {
+							var url = uptext.chapterUrl;
+							//同步取内容
+							var textObj = await getMainText(url, this.info.code);
+							this.titleText = textObj.title;
+							this.contentText = "\n\n\n\n" + this.titleText + "\n\n\n\n\n" + textObj.content;
+							uptext.chapterData = textObj.content;
+							try {
+								uni.setStorageSync(_this.info.bookId, _this.list)
+								console.log(_this.info.bookName + '目录更新成功!')
+							} catch (e) {
+								console.log('目录更新失败!' + e)
+							}
+						}
+						this.info.readChaptersUrl = uptext.chapterUrl;
+						return;
+					}
+				}
+			},
+			downchapter() { //下一章
+				this.upChapter(true);
+			},
+			cancel() { //取消
+				this.showSelectInfo();
+				this.$refs.myDarwer.close();
+				this.isShow = false;
+			},
+			search() { //搜索
+				uni.navigateTo({
+					url: '/pages/mydata/search/detail'
+				});
+			},
+			bgColor() { //背景色
+				this.isShow = false;
+				this.$refs.popup.open();
+				this.showSelectInfo();
+			},
+			select(e) { //设置背景色
+				this.backgroundColor = e.item.color;
+				this.$refs.popup.close();
+				this.showSelectInfo();
+			},
+			fontSizeSet() { //是否显示字体设置
+				let _this = this;
+				this.showFontSizeButton = true;
+				clearTimeoutFlag = setTimeout(function() {
+					_this.showFontSizeButton = false;
+				}, 10000);
+				this.showSelectInfo();
+			},
+			myBookShelf() { //书架
+				uni.switchTab({
+					url: '/pages/tabBar/component/component'
+				})
+			},
+			openDarwer() { //菜单栏
+				this.$refs.myDarwer.open();
+			},
+			sliderChange(e) { //滑动改变
+				var _this = this;
+				if (clearTimeoutFlag) {
+					clearTimeout(clearTimeoutFlag);
+				}
+				this.fontSize = e.detail.value / 2 + 'px';
+				clearTimeoutFlag = setTimeout(function() {
+					_this.showFontSizeButton = false;
+				}, 10000);
+			}
+		},
+		async onReachBottom() { //上拉触底事件
+			let _this = this;
+			//获取当前正在阅读的地址
+			var bookChapterList = uni.getStorageSync(_this.info.bookId);
+			if (!bookChapterList) {
+				uni.showToast({
+					title: '哎呀........没有可用信息! 加入书架后在试试',
+					icon: 'none',
+					duration: 2000
+				});
+				return;
+			}
+			for (var i = 0; i < bookChapterList.length; i++) {
+				if (i == bookChapterList.length - 1) {
+					uni.showToast({
+						title: '哎呀........没有更新的章节了!',
+						icon: 'none',
+						duration: 2000
+					});
+					return;
+				}
+				var chapterUrl = bookChapterList[i].chapterUrl;
+				//获取需要阅读的地址
+				if (_this.info.readChaptersUrl.trim() == chapterUrl.trim()) {
+					if (i + 1 < bookChapterList.length) {
+						var nextChapter = bookChapterList[i + 1];
+						var chapterData = nextChapter.chapterData;
+						_this.newChaptersScrollTop = _this.currentLocationScrollTop; //记录最新章节位置
+						//获取文本内容然 有缓存取缓存没有就网络请求		
+						//追加在原来的后面 
+						if (chapterData.trim() > 0) {
+							_this.contentText = _this.contentText + "\n\n\n\n" + nextChapter.chapterName + "\n\n\n\n\n" + chapterData;
+						} else {
+							var textObj = await getMainText(nextChapter.chapterUrl, _this.info.code);
+							if (textObj.content) {
+								_this.contentText = _this.contentText + "\n\n\n\n" + textObj.title + "\n\n\n\n\n" + textObj.content;
+								nextChapter.chapterData = textObj.content;
+							}
+						}
+						_this.info.readChaptersUrl = nextChapter.chapterUrl;
+						return;
+					}
+				}
+			}
+		},
+		async onPullDownRefresh() { //下拉刷新
+			// uni.startPullDownRefresh();//触发下拉
+			let _this = this;
+			//获取当前正在阅读的地址
+
+			var bookChapterList = uni.getStorageSync(_this.info.bookId);
+			if (!bookChapterList) {
+				uni.showToast({
+					title: '哎呀........没有可用信息! 加入书架后在试试',
+					icon: 'none',
+					duration: 2000
+				});
+				uni.stopPullDownRefresh(); //停止下拉动画
+			}
+
+			for (var i = 0; i < bookChapterList.length; i++) {
+				var chapterUrl = bookChapterList[i].chapterUrl;
+				//获取需要阅读的地址
+				if (_this.info.readChaptersUrl.trim() == chapterUrl.trim()) {
+					if (i + 1 < bookChapterList.length) {
+						if (i == 0) {
+							uni.showToast({
+								title: '哎哟....撞头啦!',
+								icon: 'none',
+								duration: 2000
+							});
+							uni.stopPullDownRefresh(); //停止下拉动画
+						}
+						var upChapter = bookChapterList[i - 1];
+						var chapterData = upChapter.chapterData;
+						_this.newChaptersScrollTop = _this.currentLocationScrollTop; //记录最新章节位置
+						//获取文本内容然 有缓存取缓存没有就网络请求		
+						//追加在原来的后面 
+						if (chapterData.trim() > 0) {
+							_this.contentText = upChapter.chapterName + "\n\n\n\n" + chapterData + "\n\n\n\n\n" + _this.contentText;
+						} else {
+							var textObj = await getMainText(upChapter.chapterUrl, _this.info.code);
+							if (textObj.content) {
+								_this.contentText = textObj.title + "\n\n\n\n\n" + textObj.content + "\n\n\n\n" + _this.contentText;
+								upChapter.chapterData = textObj.content;
+							}
+						}
+						_this.info.readChaptersUrl = upChapter.chapterUrl;
+						uni.stopPullDownRefresh(); //停止下拉动画
+						return;
+					}
+				}
+			}
+		},
+		onPageScroll(Object) { //滚动位置
+			let _this = this;
+			try {
+				_this.currentLocationScrollTop = Object.scrollTop;
+				uni.setStorageSync(_this.info.bookId + "_scrollTop", _this.newChaptersScrollTop)
+			} catch (e) {
+				console.log('滚动位置设置失败!' + e)
+			}
+		}
+	}
+</script>
+
+<style>
+	.my_margin_contentText {
+		margin: 50rpx 50rpx 50rpx;
+		/* display: block; */
+	}
+
+	.my_margin_titleText {
+		margin-top: 30rpx;
+		font-weight: bold;
+		font-size: 18px;
+		text-align: center;
+	}
+
+
+
+	.sticky-box-bottom {
+		/* #ifndef APP-PLUS-NVUE */
+		display: flex;
+		position: -webkit-sticky;
+		/* #endif */
+		/* 吸附底部 */
+		position: fixed;
+		bottom: 0rpx;
+		z-index: 99;
+		flex-direction: row;
+		margin: 0px;
+		background-color: #1989FA;
+		border-bottom-style: solid;
+		border-bottom-color: #E2E2E2;
+	}
+
+	.slider-box-bottom {
+		/* #ifndef APP-PLUS-NVUE */
+		display: flex;
+		position: -webkit-sticky;
+		/* #endif */
+		/* 吸附底部 */
+		position: fixed;
+		bottom: 50rpx;
+	}
+
+	.textcenter {
+		text-align: center;
+		margin-bottom: 30rpx;
+		margin-top: 30rpx;
+		font-size: 30rpx;
+		font-weight: 500;
+		padding: 20rpx 0;
+		line-height: 1.5;
+	}
+
+	.view_button {
+		width: 190upx;
+		text-align: center;
+	}
+</style>

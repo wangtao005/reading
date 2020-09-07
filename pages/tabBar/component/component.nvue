@@ -1,0 +1,228 @@
+<template>
+	<view class="uni-container uni-list">
+		<evan-checkbox-group ref="cGroup" @change="onGroupChange" v-model="delListIds">
+			<view class="uni-panel" v-for="(item, index) in list" :key="item.bookId">
+				<view class="uni-panel-h">
+					<view class="uni-panel-info" @click="triggerCollapse(item)" @longpress="longTouch(item)">
+						<view class="view_ime" :style="{width: windowWidth1}">
+							<image class="image" :style="{width: windowWidth1}" mode="aspectFit" :src="item.bookImgUrl" />
+						</view>
+						<view class="view_data" :style="{width: windowWidth2}">
+							<text class="uni-h4">{{item.bookName}}</text>
+							<view style="margin-top: 20rpx;">
+								<text class="view_text">最近更新 : {{item.bookUpdate}}</text>
+								<text class="view_text">最新章节 : {{item.bookChapter}}</text>
+							</view>
+						</view>
+					</view>
+					<view class="view_checkbox" v-if="isShow" :style="{width: windowWidth3}">
+						<evan-checkbox @change='valueChange' :label="item.bookId"></evan-checkbox>
+					</view>
+				</view>
+			</view>
+		</evan-checkbox-group>
+		<view class="sticky-box" v-if="isShow">
+			<view class="view_button"><text class="textcenter" @click="del">删除</text></view>
+			<view class="view_button"><text class="textcenter" @click="selectAll">全选</text></view>
+			<view class="view_button"><text class="textcenter" @click="selectReverse">反选</text></view>
+			<view class="view_button"><text class="textcenter" @click="cancel">取消</text></view>
+		</view>
+
+	</view>
+
+</template>
+<script>
+	// TODO 修复Android v3 加载过慢问题
+
+	// #ifdef APP-PLUS
+	var domModule = weex.requireModule('dom');
+	domModule.addRule('fontFace', {
+		'fontFamily': "uniicons",
+		'src': "url('/static/uni.ttf')"
+	});
+	// #endif
+	export default {
+		data() {
+			return {
+				list: [],
+				windowWidth1: '0px',
+				windowWidth2: '0px',
+				windowWidth3: '0px',
+				isShow: false,
+				delListIds: []
+			}
+		},
+		onLoad() {
+			this.windowWidth1 = (uni.getSystemInfoSync().windowWidth) * 0.2.toString() + "px";
+			this.windowWidth2 = (uni.getSystemInfoSync().windowWidth) * 0.55.toString() + "px";
+			this.windowWidth3 = (uni.getSystemInfoSync().windowWidth) * 0.1.toString() + "px";
+		},
+		onShow() {
+			try {
+				var adataList = uni.getStorageSync("list");
+				this.list = adataList;
+			} catch (e) {
+				console.log('获取书架书籍列表失败!' + e)
+			}
+		},
+		methods: {
+			triggerCollapse(item) {
+				let info = '?bookUrl=' + item.bookUrl +
+					'&bookName=' + item.bookName +
+					'&code=' + item.code +
+					'&homeUrl=' + item.homeUrl +
+					'&bookImgUrl=' + item.bookImgUrl +
+					'&bookAuthor=' + item.bookAuthor +
+					'&newbookUrl=' + item.newbookUrl +
+					'&bookChapter=' + item.bookChapter +
+					'&bookId=' + item.bookId +
+					'&bookUpdate=' + item.bookUpdate +
+					'&readChaptersUrl=' + item.readChaptersUrl
+				uni.navigateTo({
+					url: '/pages/mydata/pageInfo/pageInfo' + info
+				})
+			},
+			longTouch(e) {
+				uni.hideTabBar({}); //隐藏tabbar
+				this.isShow = true;
+			},
+			onGroupChange(e) {
+				this.delListIds = e;
+			},
+			trigger(e) {
+				console.log(e.text)
+
+
+
+
+			},
+			del() { //删除中的重新存如缓存
+				let _this = this;
+				let shelfList = uni.getStorageSync('list');
+				for (var i = 0; i < shelfList.length; i++) {
+					var bookid = shelfList[i].bookId;
+					for (var j = 0; j < _this.delListIds.length; j++) {
+						if (_this.delListIds[j] == bookid) {
+							delete(shelfList[i]);
+						}
+					}
+				}
+				var listdata = [];
+				for (var i = 0; i < shelfList.length; i++) {
+					var mylistData = shelfList[i];
+					if (mylistData) {
+						listdata.push(mylistData);
+					}
+				}
+				_this.list = listdata;
+				uni.setStorageSync('list', listdata);
+				uni.showTabBar({});
+				_this.isShow = false;
+			},
+			selectAll() {
+				this.$refs.cGroup.selectAll();
+			},
+			cancel() {
+				this.delListIds = [];
+				this.$refs.cGroup.clearAll();
+				uni.showTabBar({});
+				this.isShow = false;
+			},
+			selectReverse(e) {
+				this.$refs.cGroup.selectReverse()
+			},
+
+
+
+		},
+		onNavigationBarButtonTap(e) { //监听原生标题栏按钮点击事件，参数为Object
+			uni.navigateTo({
+				url: '/pages/mydata/search/search'
+			});
+		}
+
+	}
+</script>
+
+<style>
+	@import '../../../common/uni-nvue.css';
+
+
+	.uni-panel-h {
+		background-color: #ffffff;
+		flex-direction: row;
+		align-items: center;
+		padding: 10px;
+	}
+
+	.uni-panel-info {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.uni-panel {
+		margin-bottom: 2px;
+	}
+
+	.uni-container {
+		padding: 15px;
+		background-color: #f8f8f8;
+	}
+
+	.image {
+		margin: 0rpx 20rpx 5rpx 0rpx;
+		height: 180rpx;
+
+	}
+
+	.view_checkbox {
+		width: 20rpx
+	}
+
+	.view_data {
+		margin-left: 30rpx;
+	}
+
+	.view_text {
+		flex: 1;
+		color: #000000;
+		font-size: 14px;
+		font-weight: normal;
+		margin-top: 15rpx;
+	}
+
+	.sticky-box {
+		/* #ifndef APP-PLUS-NVUE */
+		display: flex;
+		position: -webkit-sticky;
+		/* #endif */
+		/* 吸附在顶部 */
+		/* position: sticky; */
+		/* top: var(--window-top); */
+		/* 吸附底部 */
+		position: fixed;
+		bottom: 0rpx;
+		/* height: var(--window-bottom); */
+		z-index: 99;
+		flex-direction: row;
+		margin: 0px;
+		/* padding: 15px 0 15px 0; */
+		/* background-color: #F4F5F6; */
+		background-color: #1989FA;
+		border-bottom-style: solid;
+		border-bottom-color: #E2E2E2;
+	}
+
+	.textcenter {
+		text-align: center;
+		font-size: 16px;
+		margin-bottom: 30rpx;
+		margin-top: 30rpx;
+		color: #FFFFFF;
+	}
+
+	.view_button {
+		width: 190upx;
+		text-align: center;
+	}
+</style>

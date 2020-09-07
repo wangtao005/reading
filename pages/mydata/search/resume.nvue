@@ -1,0 +1,298 @@
+<template>
+	<view class="view_padding">
+		<view class="view_row">
+			<view class="img-view_box">
+				<image class="img-view" :src="info.bookImgUrl" @error="imageError"></image>
+			</view>
+			<view class="view_text_box flex-item">
+				<text style="font-size: 45rpx;font-weight: bold;">{{info.bookName}}</text>
+				<text>作者: {{info.bookAuthor}}</text>
+				<text>更新: {{info.bookUpdate}}</text>
+				<text>最新: {{info.bookChapter}}</text>
+			</view>
+		</view>
+		<view style="margin-top:30rpx ;">
+			<text style="padding-top:30rpx ;">{{info.newbookUrl}}</text>
+		</view>
+		<view class="view_row view_top">
+			<button class="mini-btn" type="primary" size="mini" @click="listChapter">章节列表 </button>
+			<button class="mini-btn" type="default" size="mini" @click="joinBookShelf">加入书架 </button>
+			<button class="mini-btn" type="warn" size="mini" @click="myBookShelf">我的书架 </button>
+		</view>
+		<view class="view_top ">
+			<text> {{resumeInfo}}</text>
+		</view>
+		<view class="view_top ">
+			<text class="view_new_chapter" style="padding-left: 30rpx;" decode="true"> 最新章节</text>
+		</view>
+		<view style="margin-top: 20rpx;">
+			<view class="list-item" v-for="(item, index) in list" :key="index" @click="clickChapter(item)">
+				<view class="chapter_name_all">
+					<text style="padding-top:20rpx ;padding-bottom:20rpx ;">{{item.chapterName}} </text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+//书籍摘要
+<script>
+	import HTMLParser from "../../../js_sdk/html-parser/common/HTMLParser/html-parser.js"
+	import {
+		bookChapterList
+	} from './getChapters.js'
+	import {
+		getStrInfo,
+		getObjectInfo
+	} from '../search/bookBaseInfo.js'
+	export default {
+		data() {
+			return {
+				list: [],
+				info: {},
+				isImageError: false,
+				resumeInfo: '',
+				readChaptersUrl: '',
+			}
+		},
+		onLoad(e) {
+			this.info = getObjectInfo(e);
+			this.getBookResume(e.bookUrl, e.code, e.homeUrl)
+		},
+		methods: {
+			//获取书籍概要,书籍url,网站编码,网站具体地址
+			getBookResume(url, code, homeUrl) {
+				const _this = this;
+				uni.request({
+					url: url,
+					success: (e) => {
+						let str = e.data;
+						if (code == 1) {
+							const doc = new HTMLParser(str);
+							const fmimg = doc.getElementById('fmimg');
+							const fmimgdoc = new HTMLParser(fmimg.outerHTML);
+							const img = fmimgdoc.getElementsByTagName('img')[0];
+							let httpreg = /[a-zA-z]+:\/\/[^\s]*/;
+							let myhttp = img.outerHTML.replace(/"/g, ' ');
+							const bookImgUrl = myhttp.match(httpreg)[0];
+							if (_this.isImageError) {
+								_this.info.bookImgUrl = bookImgUrl;
+							}
+							const intro = doc.getElementById('intro');
+							const introdoc = new HTMLParser(intro.outerHTML);
+							const p = introdoc.getElementsByTagName('p')[1];
+							_this.resumeInfo = p.innerHTML;
+							const list = doc.getElementById('list');
+							const listdoc = new HTMLParser(list.outerHTML);
+							const dd = listdoc.getElementsByTagName('dd');
+							let reg = /<\/?.+?\/?>/g; //提取文字
+							let newreg = /href=[^\s]*/;
+							for (let i = (dd.length < 15 ? 0 : (dd.length >= 15 ? dd.length - 10 : 0)); i < dd.length; i++) {
+								let mulu = {};
+								let tdstr = dd[i].outerHTML;
+								const chapterName = tdstr.replace(reg, '');
+								const chapterUrl = tdstr.match(newreg)[0].replace("href=", '').replace(/'/g, '');
+								mulu.chapterName = chapterName
+								mulu.chapterUrl = homeUrl + chapterUrl
+								_this.list.push(mulu);
+							}
+							//第一章
+							let tdstr = dd[0].outerHTML;
+							const chapterName = tdstr.replace(reg, '');
+							const chapterUrl = tdstr.match(newreg)[0].replace("href=", '').replace(/'/g, '');
+							_this.readChaptersUrl = homeUrl + chapterUrl
+						} else if (code == 2) {
+
+
+
+
+						}
+						_this.list.reverse(); //倒序
+					}
+				})
+			},
+			//完整章节列表
+			listChapter() {
+				let datainfo = getStrInfo(this.info)
+				uni.navigateTo({
+					url: '/pages/mydata/search/bookChapterList' + datainfo
+				})
+			},
+			//加入书架
+			async joinBookShelf() {
+				//需要存入本地 或者更新本地信息
+				let _this = this;
+				var dataListInfo = uni.getStorageSync("list");
+				var num = 0;
+				for (var i = 0; i < dataListInfo.length; i++) {
+					const bookId = _this.info.bookId;
+					const dataBookId = dataListInfo[i].bookId;
+					if (bookId == dataBookId) {
+						let rcu = _this.info.readChaptersUrl
+						if (rcu.length > 0) {
+							_this.info.readChaptersUrl = rcu;
+						} else {
+							_this.info.readChaptersUrl = _this.readChaptersUrl;
+						}
+						dataListInfo.splice(i, 1, _this.info);
+						num++;
+					}
+				}
+				if (dataListInfo.length == 0) {
+					dataListInfo = [];
+					let rcu = _this.info.readChaptersUrl
+					if (rcu.length > 0) {
+						_this.info.readChaptersUrl = rcu;
+					} else {
+						_this.info.readChaptersUrl = _this.readChaptersUrl;
+					}
+					dataListInfo.push(_this.info);
+				} else {
+					if (num == 0) {
+						_this.info.readChaptersUrl = _this.readChaptersUrl;
+						dataListInfo.push(_this.info);
+					}
+				}
+
+				try {
+					uni.setStorageSync('list', dataListInfo);
+					uni.showModal({
+						title: '提示',
+						content: '加入成功',
+						success: function(res) {}
+					});
+					var listChapterData = await bookChapterList(_this.info.bookUrl, _this.info.code, _this.info.homeUrl);
+					try {
+						uni.setStorageSync(_this.info.bookId, listChapterData)
+						console.log(_this.info.bookName + '目录加入缓存成功');
+					} catch (e) {
+						console.log(_this.info.bookName + '目录加入缓存失败');
+					}
+
+				} catch (e) {
+					console.log("存入本地 或者更新本地信息:" + e)
+					uni.showModal({
+						title: '提示',
+						content: '加入失败,请跟换其他',
+						success: function(res) {}
+					});
+				}
+
+			},
+			//我的书架
+			myBookShelf() {
+				uni.switchTab({
+					url: '/pages/tabBar/component/component'
+				})
+			},
+			//点击章节
+			clickChapter(item) {
+				 
+				 	let content_this = this;
+				 	//查看是否已经添加到书架 没有添加到书架就提示是否加入书架
+				 	let shelfList = uni.getStorageSync("list");
+				 	var num = 0;
+				 	for (var i = 0; i < shelfList.length; i++) {
+				 		var first = shelfList[i].bookId;
+				 		if (first == content_this.info.bookId) {
+				 			num++; //大于0就已经在书架中了
+				 			break;
+				 		}
+				 	}
+				 	if (shelfList.length == 0 || (shelfList.length > 0 && num == 0)) {
+				 		uni.showModal({
+				 			title: '提示',
+				 			content: '是否将本书加入书架?',
+				 			success: function(res) {
+				 				if (res.confirm) {
+				 					try {
+				 						shelfList = shelfList.length == 0 ? [] : shelfList;
+				 						shelfList.push(content_this.info);
+				 						uni.setStorageSync("list", shelfList);
+				 						console.log('目录加入缓存成功');
+				 					} catch (e) {
+				 						console.log('目录加入缓存失败' + e);
+				 					}
+				 
+				 				}
+				 			},
+				 			complete: function(e) {
+				 				content_this.info.readChaptersUrl = item.chapterUrl
+				 				let infoData = getStrInfo(content_this.info);
+				 				uni.navigateTo({
+				 					url: '/pages/mydata/pageInfo/pageInfo' + infoData
+				 				})
+				 			}
+				 		});
+				 
+				 	} else {
+				 		content_this.info.readChaptersUrl = item.chapterUrl
+				 		let infoData = getStrInfo(content_this.info);
+				 		uni.navigateTo({
+				 			url: '/pages/mydata/pageInfo/pageInfo' + infoData
+				 		})
+				 	}
+				 
+
+
+			},
+			//图片加载错误
+			imageError(e) {
+				console.error('image发生error事件，携带值为' + e.detail.errMsg)
+				this.isImageError = true;
+			}
+
+		}
+
+
+
+	}
+</script>
+
+<style>
+	.view_padding {
+		padding: 30rpx;
+	}
+
+	.img-view_box {
+		height: 200rpx;
+		padding-top: 10rpx;
+		
+	}
+
+	.view_row {
+		display: flex;
+		flex-direction: row;
+	}
+
+	.view_top {
+		padding-top: 80rpx;
+	}
+
+	.img-view {
+		width: 155rpx;
+		/* height: 190rpx; */
+		background-image: url(../../../static/bookImg/nocover.jpg);
+		background-size: 155rpx 190rpx;
+	}
+
+	.view_text_box {
+		height: 200rpx;
+		width: 270%;
+		padding-left: 30rpx;
+	}
+
+	.view_new_chapter {
+		background-color: #E1F3D8;
+	}
+
+	.chapter_name_all {
+		border-bottom-width: 1rpx;
+		border-bottom-style: solid;
+		border-color: #C8C7CC;
+		padding: 8rpx;
+	}
+
+	.chapter_name_single {
+		margin-left: 30rpx;
+	}
+</style>

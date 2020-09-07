@@ -1,0 +1,158 @@
+<template>
+
+	<view>
+		<view>
+			<text class="book_name">{{bookName}}</text>
+		</view>
+		<view class="book_mulu">
+			<view v-for="(item, index) in list" :key="index" @click="listTap(item)">
+				<view class="chapter_name_all">
+					<view v-if="item.isReading" style="flex-direction: row;">
+						<text :style="{width: windowWidth2,color:'#CE3C39'}">{{item.chapterName}}</text>
+						<text :style="{width: windowWidth1,color:'#CE3C39'}" v-if="item.chapterData">已下载</text>
+					</view>
+					<view v-else style="flex-direction: row;">
+						<text :style="{width: windowWidth2}">{{item.chapterName}}</text>
+						<text :style="{width: windowWidth1}" v-if="item.chapterData">已下载</text>
+					</view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+<!-- 目录 -->
+<script>
+	import HTMLParser from "../../../js_sdk/html-parser/common/HTMLParser/html-parser.js"
+	import {
+		bookChapterList
+	} from './getChapters.js'
+	import {
+		getStrInfo,
+		getObjectInfo
+	} from '../search/bookBaseInfo.js'
+	export default {
+		data() {
+			return {
+				windowWidth1: '0px',
+				windowWidth2: '0px',
+				list: [],
+				bookName: '',
+				info: {}
+			};
+		},
+		onLoad(e) {
+			this.windowWidth1 = (uni.getSystemInfoSync().windowWidth) * 0.2.toString() + "px";
+			this.windowWidth2 = (uni.getSystemInfoSync().windowWidth) * 0.8.toString() + "px";
+			this.info = getObjectInfo(e);
+			this.bookName = e.bookName
+			this.chapterList(e.bookUrl, e.code, e.homeUrl);
+
+		},
+		methods: {
+
+			async chapterList(url, code, homeUrl) { //同步方法
+				var oldChapterList = uni.getStorageSync(this.info.bookId); //查看是否已经缓存
+				if(!oldChapterList){
+					oldChapterList = [];
+				}
+				var mylist = await bookChapterList(url, code, homeUrl); //获取所有章节列表
+				if (oldChapterList.length < mylist.length) {
+					for (var j = (oldChapterList.length) == 0 ? (oldChapterList.length) : (oldChapterList.length + 1); j < mylist.length; j++) { //将获取的新数据追加在原来列表后面
+						oldChapterList.push(mylist[j])
+					}
+					let shelfList = uni.getStorageSync("list"); //获取书架列表,如果存在本书就更新目录
+					for (var i = 0; i < shelfList.length; i++) {
+						var first = shelfList[i].bookId;
+						if (first == this.info.bookId) {
+							try {
+								uni.setStorageSync(this.info.bookId, oldChapterList);
+								console.log('目录加入缓存success');
+							} catch (e) {
+								console.log('目录加入缓存失败' + e);
+							}
+						}
+					}
+				} 
+					this.list = oldChapterList;
+			},
+			async listTap(item) {
+				let content_this = this;
+				//查看是否已经添加到书架 没有添加到书架就提示是否加入书架
+				let shelfList = uni.getStorageSync("list");
+				var num = 0;
+				for (var i = 0; i < shelfList.length; i++) {
+					var first = shelfList[i].bookId;
+					if (first == content_this.info.bookId) {
+						num++; //大于0就已经在书架中了
+						break;
+					}
+				}
+				if (shelfList.length == 0 || (shelfList.length > 0 && num == 0)) {
+					uni.showModal({
+						title: '提示',
+						content: '是否将本书加入书架?',
+						success: function(res) {
+							if (res.confirm) {
+								try {
+									shelfList = shelfList.length == 0 ? [] : shelfList;
+									shelfList.push(content_this.info);
+									uni.setStorageSync("list", shelfList);
+									console.log('目录加入缓存成功');
+								} catch (e) {
+									console.log('目录加入缓存失败' + e);
+								}
+
+							}
+						},
+						complete: function(e) {
+							content_this.info.readChaptersUrl = item.chapterUrl
+							let infoData = getStrInfo(content_this.info);
+							uni.navigateTo({
+								url: '/pages/mydata/pageInfo/pageInfo' + infoData
+							})
+						}
+					});
+
+				} else {
+					content_this.info.readChaptersUrl = item.chapterUrl
+					let infoData = getStrInfo(content_this.info);
+					uni.navigateTo({
+						url: '/pages/mydata/pageInfo/pageInfo' + infoData
+					})
+				}
+			}
+
+
+		},
+		onNavigationBarButtonTap(e) { //按钮监听
+			//console.log(e)多图标可以用index区分
+			this.list = this.list.reverse();
+		}
+	}
+</script>
+
+<style>
+	.book_name {
+		margin-top: 30rpx;
+		text-align: center;
+		font-weight: bold;
+		font-size: 50rpx;
+	}
+
+	.book_mulu {
+		margin-top: 30rpx;
+	}
+
+	.chapter_name_all {
+		flex-direction: row;
+		border-bottom-width: 1px;
+		border-bottom-style: solid;
+		border-color: #C8C7CC;
+		padding: 20rpx;
+		font-size: 14rpx;
+	}
+
+	.chapter_name_single {
+		margin-left: 30rpx;
+	}
+</style>
