@@ -41,6 +41,9 @@
 		bookChapterList
 	} from './getChapters.js'
 	import {
+		getBookResume
+	} from './resume.js'
+	import {
 		getStrInfo,
 		getObjectInfo
 	} from '../search/bookBaseInfo.js'
@@ -56,59 +59,21 @@
 		},
 		onLoad(e) {
 			this.info = getObjectInfo(e);
-			this.getBookResume(e.bookUrl, e.code, e.homeUrl)
+			this.BookResume(e.bookUrl, e.code, e.homeUrl)
 		},
 		methods: {
 			//获取书籍概要,书籍url,网站编码,网站具体地址
-			getBookResume(url, code, homeUrl) {
-				const _this = this;
-				uni.request({
-					url: url,
-					success: (e) => {
-						let str = e.data;
-						if (code == 1) {
-							const doc = new HTMLParser(str);
-							const fmimg = doc.getElementById('fmimg');
-							const fmimgdoc = new HTMLParser(fmimg.outerHTML);
-							const img = fmimgdoc.getElementsByTagName('img')[0];
-							let httpreg = /[a-zA-z]+:\/\/[^\s]*/;
-							let myhttp = img.outerHTML.replace(/"/g, ' ');
-							const bookImgUrl = myhttp.match(httpreg)[0];
-							if (_this.isImageError) {
-								_this.info.bookImgUrl = bookImgUrl;
-							}
-							const intro = doc.getElementById('intro');
-							const introdoc = new HTMLParser(intro.outerHTML);
-							const p = introdoc.getElementsByTagName('p')[1];
-							_this.resumeInfo = p.innerHTML;
-							const list = doc.getElementById('list');
-							const listdoc = new HTMLParser(list.outerHTML);
-							const dd = listdoc.getElementsByTagName('dd');
-							let reg = /<\/?.+?\/?>/g; //提取文字
-							let newreg = /href=[^\s]*/;
-							for (let i = (dd.length < 15 ? 0 : (dd.length >= 15 ? dd.length - 10 : 0)); i < dd.length; i++) {
-								let mulu = {};
-								let tdstr = dd[i].outerHTML;
-								const chapterName = tdstr.replace(reg, '');
-								const chapterUrl = tdstr.match(newreg)[0].replace("href=", '').replace(/'/g, '');
-								mulu.chapterName = chapterName
-								mulu.chapterUrl = homeUrl + chapterUrl
-								_this.list.push(mulu);
-							}
-							//第一章
-							let tdstr = dd[0].outerHTML;
-							const chapterName = tdstr.replace(reg, '');
-							const chapterUrl = tdstr.match(newreg)[0].replace("href=", '').replace(/'/g, '');
-							_this.readChaptersUrl = homeUrl + chapterUrl
-						} else if (code == 2) {
-
-
-
-
-						}
-						_this.list.reverse(); //倒序
-					}
-				})
+			async BookResume(url, code, homeUrl) {
+				var _this = this;
+				var listMydata = await getBookResume(url, code, homeUrl);
+				console.log(11,listMydata)
+				if (_this.isImageError) {
+					_this.info.bookImgUrl = listMydata.editInfo.bookImgUrl;
+				}
+				_this.resumeInfo = listMydata.editInfo.resumeInfo;
+				_this.readChaptersUrl = listMydata.editInfo.readChaptersUrl;
+				_this.list = listMydata.listData;
+				_this.list.reverse(); //倒序
 			},
 			//完整章节列表
 			listChapter() {
@@ -186,52 +151,50 @@
 			},
 			//点击章节
 			clickChapter(item) {
-				 
-				 	let content_this = this;
-				 	//查看是否已经添加到书架 没有添加到书架就提示是否加入书架
-				 	let shelfList = uni.getStorageSync("list");
-				 	var num = 0;
-				 	for (var i = 0; i < shelfList.length; i++) {
-				 		var first = shelfList[i].bookId;
-				 		if (first == content_this.info.bookId) {
-				 			num++; //大于0就已经在书架中了
-				 			break;
-				 		}
-				 	}
-				 	if (shelfList.length == 0 || (shelfList.length > 0 && num == 0)) {
-				 		uni.showModal({
-				 			title: '提示',
-				 			content: '是否将本书加入书架?',
-				 			success: function(res) {
-				 				if (res.confirm) {
-				 					try {
-				 						shelfList = shelfList.length == 0 ? [] : shelfList;
-				 						shelfList.push(content_this.info);
-				 						uni.setStorageSync("list", shelfList);
-				 						console.log('目录加入缓存成功');
-				 					} catch (e) {
-				 						console.log('目录加入缓存失败' + e);
-				 					}
-				 
-				 				}
-				 			},
-				 			complete: function(e) {
-				 				content_this.info.readChaptersUrl = item.chapterUrl
-				 				let infoData = getStrInfo(content_this.info);
-				 				uni.navigateTo({
-				 					url: '/pages/mydata/pageInfo/pageInfo' + infoData
-				 				})
-				 			}
-				 		});
-				 
-				 	} else {
-				 		content_this.info.readChaptersUrl = item.chapterUrl
-				 		let infoData = getStrInfo(content_this.info);
-				 		uni.navigateTo({
-				 			url: '/pages/mydata/pageInfo/pageInfo' + infoData
-				 		})
-				 	}
-				 
+				let content_this = this;
+				//查看是否已经添加到书架 没有添加到书架就提示是否加入书架
+				let shelfList = uni.getStorageSync("list");
+				var num = 0;
+				for (var i = 0; i < shelfList.length; i++) {
+					var first = shelfList[i].bookId;
+					if (first == content_this.info.bookId) {
+						num++; //大于0就已经在书架中了
+						break;
+					}
+				}
+				if (shelfList.length == 0 || (shelfList.length > 0 && num == 0)) {
+					uni.showModal({
+						title: '提示',
+						content: '是否将本书加入书架?',
+						success: function(res) {
+							if (res.confirm) {
+								try {
+									shelfList = shelfList.length == 0 ? [] : shelfList;
+									shelfList.push(content_this.info);
+									uni.setStorageSync("list", shelfList);
+									console.log('目录加入缓存成功');
+								} catch (e) {
+									console.log('目录加入缓存失败' + e);
+								}
+
+							}
+						},
+						complete: function(e) {
+							content_this.info.readChaptersUrl = item.chapterUrl
+							let infoData = getStrInfo(content_this.info);
+							uni.navigateTo({
+								url: '/pages/mydata/pageInfo/pageInfo' + infoData
+							})
+						}
+					});
+
+				} else {
+					content_this.info.readChaptersUrl = item.chapterUrl
+					let infoData = getStrInfo(content_this.info);
+					uni.navigateTo({
+						url: '/pages/mydata/pageInfo/pageInfo' + infoData
+					})
+				}
 
 
 			},
@@ -256,7 +219,7 @@
 	.img-view_box {
 		height: 200rpx;
 		padding-top: 10rpx;
-		
+
 	}
 
 	.view_row {

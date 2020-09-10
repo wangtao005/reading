@@ -3,7 +3,7 @@ import HTMLParser from "../../../js_sdk/html-parser/common/HTMLParser/html-parse
 /**
  * 大文学
  */
-export function getBookInfo_big(str, code) {
+export function getBookInfo_big(str, homeUrl ,code) {
 	let bookData = [];
 	const doc = new HTMLParser(str);
 	const main = doc.getElementById('main');
@@ -12,23 +12,23 @@ export function getBookInfo_big(str, code) {
 	for (let i = 1; i < lis.length; i++) {
 		let bookinfo = {};
 		const liinfo = lis[i].outerHTML;
-		const listr = HTMLParser(liinfo);
+		const listr = new HTMLParser(liinfo);
 		const bookName_text = listr.getElementsByClassName('s2')[0]; //书名
 		const bookName_a = HTMLParser(bookName_text.outerHTML);
-		const bookName_a_ = bookName_a.getElementsByTagName('a');
+		const bookName_a_ = bookName_a.getElementsByTagName('a')[0];
 		let reg = /<\/?.+?\/?>/g; //提取文字
-		const bookName = bookName_a_[0].innerHTML.replace(reg, '');
-		let httpreg = /[a-zA-z]+:\/\/[^\s]*/;
-		let myhttp = bookName_a_[0].outerHTML.replace(/"/g, ' ');
-		const bookUrl = myhttp.match(httpreg)[0];
+		const bookName = bookName_a_.innerHTML.replace(reg, '');
+		const bookUrl = bookName_a_.attributes.href;
+		if(bookUrl.indexOf("http")==-1){
+			continue;
+		}
 		const bookChapter_text = listr.getElementsByClassName('s3')[0]; //章节
 		const bookChapter_a = HTMLParser(bookChapter_text.outerHTML);
-		const bookChapter_a_ = bookChapter_a.getElementsByTagName('a');
-		const bookChapter = bookChapter_a_[0].innerHTML;
-		let mybookcha = bookChapter_a_[0].outerHTML.replace(/"/g, ' ');
-		const newbookUrl = mybookcha.match(httpreg)[0];
+		const bookChapter_a_ = bookChapter_a.getElementsByTagName('a')[0];
+		const bookChapter = bookChapter_a_.innerHTML;
+		const newbookUrl = bookChapter_a_.attributes.href;
 		const bookAuthor_text = listr.getElementsByClassName('s4')[0]; //作者
-		const bookAuthor = bookAuthor_text.innerHTML;
+		const bookAuthor = bookAuthor_text.innerHTML.replace(reg, '');
 		const bookUpdate_text = listr.getElementsByClassName('s6')[0]; //更新时间
 		const bookUpdate = bookUpdate_text.innerHTML;
 		bookinfo.bookName = bookName;
@@ -38,6 +38,8 @@ export function getBookInfo_big(str, code) {
 		bookinfo.bookAuthor = bookAuthor;
 		bookinfo.bookUpdate = bookUpdate;
 		bookinfo.code = code;
+		bookinfo.bookId = bookUrl.replace(homeUrl,"");
+		bookinfo.homeUrl = homeUrl;
 		bookinfo.resource = '大文学'; //来源
 		bookData.push(bookinfo);
 	}

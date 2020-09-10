@@ -73,7 +73,6 @@
 				newChaptersScrollTop: '', //最新章节加载位置
 				info: {},
 				list: [], //章节目录数据
-
 			}
 		},
 		onLoad: function(e) { //option为object类型，会序列化上个页面传递的参数
@@ -202,7 +201,7 @@
 								if (contenttext.trim().length > 0) {
 									chapterlistInfo.isReading = true;
 									content_this.titleText = chapterlistInfo.chapterName;
-									content_this.contentText = "\n\n\n" + this.titleText + "\n\n\n\n" + contenttext;
+									content_this.contentText = "\n\n\n" + this.titleText + "\n\n\n" + contenttext;
 								}
 							}
 						}
@@ -216,7 +215,7 @@
 					//同步取内容
 					var textObj = await getMainText(url, content_this.info.code);
 					content_this.titleText = textObj.title;
-					content_this.contentText = "\n\n\n" + content_this.titleText + "\n\n\n\n" + textObj.content;
+					content_this.contentText = "\n\n\n" + content_this.titleText + "\n\n\n" + textObj.content;
 					for (var i = 0; i < content_this.list.length; i++) {
 						if (content_this.list[i].chapterName.trim() === textObj.title.trim()) {
 							content_this.list[i].chapterData = textObj.content;
@@ -276,13 +275,13 @@
 						this.list[i].isReading = false;
 						this.titleText = uptext.chapterName;
 						if (uptext.chapterData.length > 0) {
-							this.contentText = "\n\n\n\n" + this.titleText + "\n\n\n\n\n" + uptext.chapterData;
+							this.contentText = "\n\n\n" + this.titleText + "\n\n\n\n" + uptext.chapterData;
 						} else {
 							var url = uptext.chapterUrl;
 							//同步取内容
 							var textObj = await getMainText(url, this.info.code);
 							this.titleText = textObj.title;
-							this.contentText = "\n\n\n\n" + this.titleText + "\n\n\n\n\n" + textObj.content;
+							this.contentText = "\n\n\n" + this.titleText + "\n\n\n\n" + textObj.content;
 							uptext.chapterData = textObj.content;
 							try {
 								uni.setStorageSync(_this.info.bookId, _this.list)
@@ -377,11 +376,11 @@
 						//获取文本内容然 有缓存取缓存没有就网络请求		
 						//追加在原来的后面 
 						if (chapterData.trim() > 0) {
-							_this.contentText = _this.contentText + "\n\n\n\n" + nextChapter.chapterName + "\n\n\n\n\n" + chapterData;
+							_this.contentText = _this.contentText + "\n\n\n" + nextChapter.chapterName + "\n\n\n\n" + chapterData;
 						} else {
 							var textObj = await getMainText(nextChapter.chapterUrl, _this.info.code);
 							if (textObj.content) {
-								_this.contentText = _this.contentText + "\n\n\n\n" + textObj.title + "\n\n\n\n\n" + textObj.content;
+								_this.contentText = _this.contentText + "\n\n\n" + textObj.title + "\n\n\n\n" + textObj.content;
 								nextChapter.chapterData = textObj.content;
 							}
 						}
@@ -425,11 +424,11 @@
 						//获取文本内容然 有缓存取缓存没有就网络请求		
 						//追加在原来的后面 
 						if (chapterData.trim() > 0) {
-							_this.contentText = upChapter.chapterName + "\n\n\n\n" + chapterData + "\n\n\n\n\n" + _this.contentText;
+							_this.contentText = upChapter.chapterName + "\n\n\n" + chapterData + "\n\n\n\n" + _this.contentText;
 						} else {
 							var textObj = await getMainText(upChapter.chapterUrl, _this.info.code);
 							if (textObj.content) {
-								_this.contentText = textObj.title + "\n\n\n\n\n" + textObj.content + "\n\n\n\n" + _this.contentText;
+								_this.contentText = textObj.title + "\n\n\n\n" + textObj.content + "\n\n\n" + _this.contentText;
 								upChapter.chapterData = textObj.content;
 							}
 						}

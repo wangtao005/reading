@@ -46,7 +46,6 @@
 			this.info = getObjectInfo(e);
 			this.bookName = e.bookName
 			this.chapterList(e.bookUrl, e.code, e.homeUrl);
-
 		},
 		methods: {
 

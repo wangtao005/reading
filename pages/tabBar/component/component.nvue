@@ -104,6 +104,7 @@
 					for (var j = 0; j < _this.delListIds.length; j++) {
 						if (_this.delListIds[j] == bookid) {
 							delete(shelfList[i]);
+							uni.removeStorageSync(bookid)
 						}
 					}
 				}

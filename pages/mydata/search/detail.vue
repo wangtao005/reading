@@ -24,9 +24,15 @@
 
 					<view class="view_data">
 						<rich-text :nodes="item.colorBookName" class="text_name"></rich-text>
-						<rich-text :nodes="item.bookUrl" class="hidden_text"></rich-text>
-						<rich-text :nodes="item.bookChapter" class="text_ch"></rich-text>
-						<rich-text :nodes="item.newbookUrl" class="hidden_text"></rich-text>
+						<view class="uni-row">
+							<view  class="text_au">
+								<text class="text_au">{{ item.resource}}</text>
+							</view>
+							<view>
+								<rich-text :nodes="item.bookChapter" class="text_ch" v-if="item.bookChapter !== null && item.bookChapter.length < 15"></rich-text>
+								<rich-text :nodes="item.bookChapter" class="text_ch" v-else></rich-text>
+							</view>
+						</view>
 						<view>
 							<text class="text_au">{{ item.bookAuthor}}</text>
 							<text class="text_up">{{ item.bookUpdate}}</text>
@@ -127,15 +133,15 @@
 							let str = e.data;
 							if (code == 1) {
 								var mydata = getBookInfo_biqu(str, homeUrl, code);
-								for (var i = 0 ;i<mydata.length;i++) {
-									var colorBookName = util.serachNmme(val , mydata[i].bookName);
+								for (var i = 0; i < mydata.length; i++) {
+									var colorBookName = util.serachNmme(val, mydata[i].bookName);
 									mydata[i].colorBookName = colorBookName;
 								}
 								_this.bookData = [..._this.bookData, ...mydata];
 							} else if (code == 2) {
-								var mydata = getBookInfo_big(str, code);
-								for (var i = 0 ;i<mydata.length;i++) {
-									var colorBookName = util.serachNmme(val ,mydata[i].bookName);
+								var mydata = getBookInfo_big(str, homeUrl, code);
+								for (var i = 0; i < mydata.length; i++) {
+									var colorBookName = util.serachNmme(val, mydata[i].bookName);
 									mydata[i].colorBookName = colorBookName;
 								}
 								_this.bookData = [..._this.bookData, ...mydata]; //拷贝数据
@@ -213,8 +219,8 @@
 		 *  点击导航栏 buttons 时触发
 		 */
 		onNavigationBarButtonTap(e) {
-			 
-		} 
+
+		}
 	};
 </script>
 
@@ -264,10 +270,6 @@
 		margin: 100rpx;
 	}
 
-	.hidden_text {
-		display: none;
-	}
-
 	.view_ime {
 		width: 120rpx;
 		height: 150rpx;
@@ -295,8 +297,20 @@
 	}
 
 	.text_ch {
+		/* width: 360rpx; */
 		display: inline-block;
-		margin-top: 30rpx;
+		/* margin-top: 30rpx; */
+		overflow: hidden;
+		/* word-break: break-all; */
+		/* break-all(允许在单词内换行。) */
+		text-overflow: ellipsis;
+		/* 超出部分省略号 */
+		display: -webkit-box;
+		/** 对象作为伸缩盒子模型显示 **/
+		-webkit-box-orient: horizontal;
+		/* * 设置或检索伸缩盒对象的子元素的排列方式 * */
+		-webkit-line-clamp: 1;
+		/** 显示的行数 **/
 	}
 
 	.text_name {

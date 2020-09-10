@@ -10,7 +10,6 @@ export const bookChapterList = (url, code, homeUrl)=>{
 		uni.request({
 			url: url,
 			success: (e) => {
-			
 				let str = e.data;
 				const doc = new HTMLParser(str);
 				if (code == 1) { //笔趣阁
@@ -25,18 +24,31 @@ export const bookChapterList = (url, code, homeUrl)=>{
 						const chapterName = tdstr.replace(reg, '');
 						const chapterUrl = tdstr.match(newreg)[0].replace("href=", '').replace(/'/g, '');
 						mulu.chapterName = chapterName;
-						mulu.chapterUrl = homeUrl + chapterUrl;;
+						mulu.chapterUrl = homeUrl + chapterUrl;
 						mulu.chapterData = '';
 						mulu.isReading = false;
 						listDataBookChapter.push(mulu);
 					}
-			
-			
-			
-			
 				} else if (code == 2) { //大文学
-					// var mydata = getBookInfo_big(str);
-					// _this.bookData = [..._this.bookData, ...mydata]; //拷贝数据
+					
+					const list = doc.getElementById('list');
+					const listdoc = new HTMLParser(list.outerHTML);
+					console.log(111,listdoc)
+					const dd = listdoc.getElementsByTagName('dd');
+					let reg = /<\/?.+?\/?>/g; //提取文字
+					for (let i = (dd.length>30?15:(dd.length/2)); i < dd.length; i++) {
+						let mulu = {};
+						let tdstr = dd[i].outerHTML;
+						const chapterName = tdstr.replace(reg, '');
+						const tda= new HTMLParser(tdstr);
+						const da = tda.getElementsByTagName('a');
+						const chapterUrldata = da[0].attributes.href;
+						mulu.chapterName = chapterName;
+						mulu.chapterUrl = homeUrl + chapterUrldata;
+						mulu.chapterData = '';
+						mulu.isReading = false;
+						listDataBookChapter.push(mulu);
+					}
 				}
 				resolve(listDataBookChapter)
 				// return listDataBookChapter;
