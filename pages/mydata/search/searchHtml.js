@@ -38,6 +38,7 @@ export function getBookInfo_big(str, homeUrl ,code) {
 		bookinfo.bookAuthor = bookAuthor;
 		bookinfo.bookUpdate = bookUpdate;
 		bookinfo.code = code;
+		bookinfo.isUpdate = false;
 		bookinfo.bookId = bookUrl.replace(homeUrl,"");
 		bookinfo.homeUrl = homeUrl;
 		bookinfo.resource = '大文学'; //来源
@@ -94,6 +95,7 @@ export function getBookInfo_biqu(str, homeUrl, code) {
 				}
 			}
 			bookinfo.code = code;
+			bookinfo.isUpdate = false;
 			bookinfo.homeUrl = homeUrl;
 			bookinfo.resource = '笔趣阁'; //来源
 		}

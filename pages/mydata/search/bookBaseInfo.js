@@ -11,6 +11,7 @@ export function getStrInfo(e) {
 		'&bookChapter=' + e.bookChapter +
 		'&bookId=' + e.bookId +
 		'&bookUpdate=' + e.bookUpdate +
+		'&isUpdate=' + e.isUpdate +
 		'&readChaptersUrl=' + e.readChaptersUrl
 	return infoData;
 }
@@ -27,6 +28,7 @@ export function getObjectInfo(e) {
 		'newbookUrl': e.newbookUrl,
 		'bookId': e.bookId,
 		'bookUpdate': e.bookUpdate,
+		'isUpdate': e.isUpdate,
 		'readChaptersUrl': e.readChaptersUrl
 	}
 	return info;

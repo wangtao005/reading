@@ -11,7 +11,7 @@
 							<text class="uni-h4">{{item.bookName}}</text>
 							<view style="margin-top: 20rpx;">
 								<text class="view_text">最近更新 : {{item.bookUpdate}}</text>
-								<text class="view_text">最新章节 : {{item.bookChapter}}</text>
+								<text class="view_text">最新章节 : {{item.bookChapter}}<text v-if="item.isUpdate=='false'?false:true" style="color:red;margin-left: 20rpx;" >新</text></text>
 							</view>
 						</view>
 					</view>
@@ -41,6 +41,13 @@
 		'src': "url('/static/uni.ttf')"
 	});
 	// #endif
+	import {
+		getStrInfo,
+		getObjectInfo
+	} from '../../mydata/search/bookBaseInfo.js'
+	import {
+		bookChapterList
+	} from '../../mydata/search/getChapters.js'
 	export default {
 		data() {
 			return {
@@ -56,28 +63,26 @@
 			this.windowWidth1 = (uni.getSystemInfoSync().windowWidth) * 0.2.toString() + "px";
 			this.windowWidth2 = (uni.getSystemInfoSync().windowWidth) * 0.55.toString() + "px";
 			this.windowWidth3 = (uni.getSystemInfoSync().windowWidth) * 0.1.toString() + "px";
+
 		},
 		onShow() {
 			try {
 				var adataList = uni.getStorageSync("list");
 				this.list = adataList;
+				 this.updateBookChapter();
 			} catch (e) {
 				console.log('获取书架书籍列表失败!' + e)
 			}
 		},
 		methods: {
 			triggerCollapse(item) {
-				let info = '?bookUrl=' + item.bookUrl +
-					'&bookName=' + item.bookName +
-					'&code=' + item.code +
-					'&homeUrl=' + item.homeUrl +
-					'&bookImgUrl=' + item.bookImgUrl +
-					'&bookAuthor=' + item.bookAuthor +
-					'&newbookUrl=' + item.newbookUrl +
-					'&bookChapter=' + item.bookChapter +
-					'&bookId=' + item.bookId +
-					'&bookUpdate=' + item.bookUpdate +
-					'&readChaptersUrl=' + item.readChaptersUrl
+				var _this = this;
+				let info = getStrInfo(item);
+				for (var i =0 ;i<_this.list.length;i++) {
+					if(item.bookId = _this.list[i].bookId){
+						_this.list[i].isUpdate = false;
+					}
+				}
 				uni.navigateTo({
 					url: '/pages/mydata/pageInfo/pageInfo' + info
 				})
@@ -132,9 +137,28 @@
 			selectReverse(e) {
 				this.$refs.cGroup.selectReverse()
 			},
-
-
-
+			async updateBookChapter() {//更新章节列表
+			let adataList = this.list;
+				for (var i = 0; i < adataList.length; i++) {
+					let datainfo = adataList[i];
+					let url = datainfo.bookUrl;
+					let code = datainfo.code;
+					let homeUrl = datainfo.homeUrl;
+					var mylist = await bookChapterList(url, code, homeUrl);
+					if(datainfo.newbookUrl!=mylist[mylist.length-1].chapterUrl){
+						 datainfo.newbookUrl = mylist[mylist.length-1].chapterUrl;
+						 datainfo.bookChapter = mylist[mylist.length-1].chapterName;
+						 //更新目录
+						 try {
+						 	uni.setStorageSync(datainfo.bookId,mylist);
+							console.log(datainfo.bookName+'更新目录成功!' )
+						 } catch (e) {
+						 	console.log(datainfo.bookName+'更新目录失败!' + e)
+						 }
+						 datainfo.isUpdate = true;
+					}
+				}
+			}
 		},
 		onNavigationBarButtonTap(e) { //监听原生标题栏按钮点击事件，参数为Object
 			uni.navigateTo({

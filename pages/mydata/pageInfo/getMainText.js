@@ -22,10 +22,9 @@ export const getMainText = (url, code) => {
 					const titleText = titleName.innerHTML;
 					//内容
 					const pluginListText = doc.getElementById('content');
-					const contentText = pluginListText.innerHTML.replace(/<br \/>/g, '\n').replace(/<p>/g,
-						"&nbsp;&nbsp;&nbsp;&nbsp;").replace(/<\/p>/g, "");
+					const contentText = pluginListText.innerHTML.replace(/<br \/>/g, '\n').replace(/<p[^>]*>(?:(?!<\/p>)[\s\S])*<\/p>/,'---------------本章完---------------');
 					mainText.title = titleText;
-					mainText.content = contentText.replace(/&nbsp;/g, "  ");
+					mainText.content = contentText.replace(/&nbsp;/g, "  ").replace('<script>readx();</script>','');
 				} else if (code == 2) { //大文学
 					 // 选取插件列表内层的HTML文本 bookname
 					 const titleNametag = doc.getElementsByClassName('bookname')[0];
@@ -37,7 +36,7 @@ export const getMainText = (url, code) => {
 					 const contentText = pluginListText.innerHTML.replace(/<br \/>/g, '\n').replace(/<p>/g,
 					 	"&nbsp;&nbsp;&nbsp;&nbsp;").replace(/<\/p>/g, '\n');
 					 mainText.title = titleText;
-					 mainText.content = contentText.replace(/&nbsp;/g, "  ");
+					 mainText.content = contentText.replace(/&nbsp;/g, "  ")+('---------------本章完---------------');
 				}
 				resolve(mainText);
 				// return listDataBookChapter;

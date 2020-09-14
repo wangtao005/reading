@@ -33,7 +33,6 @@ export const bookChapterList = (url, code, homeUrl)=>{
 					
 					const list = doc.getElementById('list');
 					const listdoc = new HTMLParser(list.outerHTML);
-					console.log(111,listdoc)
 					const dd = listdoc.getElementsByTagName('dd');
 					let reg = /<\/?.+?\/?>/g; //提取文字
 					for (let i = (dd.length>30?15:(dd.length/2)); i < dd.length; i++) {
