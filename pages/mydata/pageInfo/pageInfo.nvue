@@ -5,7 +5,7 @@
 			<view style="margin-left: 90rpx;" @click="upChapter"><text style="color: #FFFFFF;font-size: 34rpx;">上一章</text></view>
 			<view style="margin-left: 80rpx;" @click="downchapter"><text style="color: #FFFFFF;font-size: 34rpx;">下一章</text></view>
 		</uni-nav-bar>
-		<view @longpress="showSelectInfo" >
+		<view @longpress="showSelectInfo">
 			<text class="my_margin_contentText" :style="{fontSize: fontSize}" decode="true">{{contentText}}</text>
 		</view>
 		<view v-if="showFontSizeButton" class="slider-box-bottom" :style="{width:windowWidth}">
@@ -36,7 +36,8 @@
 <script>
 	import HTMLParser from "../../../js_sdk/html-parser/common/HTMLParser/html-parser.js"
 	import {
-		getMainText
+		getMainText,
+		windowFull
 	} from './getMainText.js'
 	import {
 		getStrInfo,
@@ -80,7 +81,8 @@
 			this.info = getObjectInfo(e);
 			this.getText();
 			// #ifdef APP-PLUS  
-			plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
+			plus.navigator.setFullscreen(true); //单个页面隐藏状态栏 全屏显示 false 非全屏
+			plus.navigator.hideSystemNavigation();//隐藏安卓原生返回
 			// #endif
 			var _this = this;
 			setTimeout(function() {
@@ -92,9 +94,9 @@
 							duration: 0 //滚动动画时长
 						});
 					}
-
 				} catch (e) {}
 			}, 1)
+			//uni.navigateBack()返回退出app
 		},
 		onHide() {
 			this.pageShow = false
@@ -127,8 +129,8 @@
 			this.pageShow = true
 		},
 		onUnload(option) {
-			// #ifdef APP-PLUS  
-			plus.navigator.setFullscreen(false); //状态栏
+			// #ifdef APP-PLUS
+			plus.navigator.setFullscreen(false); //状态栏显示
 			// #endif
 			if (this.pageShow) {
 				try {
@@ -233,15 +235,19 @@
 				}
 			},
 			showSelectInfo() {
+				
 				if (this.isShow) {
 					// #ifdef APP-PLUS
 					plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
+					plus.navigator.hideSystemNavigation();//隐藏安卓原生返回
 					// #endif
 				} else {
 					// #ifdef APP-PLUS
-					plus.navigator.setFullscreen(false); //状态栏
+					plus.navigator.setFullscreen(false); //状态栏显示
+					windowFull(4);
 					// #endif
 				}
+			
 				this.isShow = !this.isShow;
 				this.$refs.myDarwer.close();
 			},
@@ -446,6 +452,14 @@
 				uni.setStorageSync(_this.info.bookId + "_scrollTop", _this.newChaptersScrollTop)
 			} catch (e) {
 				console.log('滚动位置设置失败!' + e)
+			}
+		},
+		onBackPress(options) {//系统返回按钮
+			if (options.from === 'backbutton') {
+				// #ifdef APP-PLUS
+				plus.navigator.setFullscreen(false); //状态栏显示
+				// #endif
+				return false;
 			}
 		}
 	}

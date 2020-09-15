@@ -66,7 +66,9 @@
 			this.windowWidth1 = (uni.getSystemInfoSync().windowWidth) * 0.2.toString() + "px";
 			this.windowWidth2 = (uni.getSystemInfoSync().windowWidth) * 0.55.toString() + "px";
 			this.windowWidth3 = (uni.getSystemInfoSync().windowWidth) * 0.1.toString() + "px";
-
+			// #ifdef APP-PLUS
+			 plus.navigator.setFullscreen(false); //状态栏显示
+			 // #endif
 		},
 		onShow() {
 			try {
