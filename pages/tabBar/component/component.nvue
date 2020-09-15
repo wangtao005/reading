@@ -8,10 +8,13 @@
 							<image class="image" :style="{width: windowWidth1}" mode="aspectFit" :src="item.bookImgUrl" />
 						</view>
 						<view class="view_data" :style="{width: windowWidth2}">
-							<text class="uni-h4">{{item.bookName}}</text>
+							<view style="flex-direction: row">
+								<text class="uni-h4">{{item.bookName}}</text>
+								<text v-if="item.isUpdate=='false'?false:(item.isUpdate==false?false:true)" style="color:red;margin-left: 30rpx;font-size: 14px;">新</text>
+							</view>
 							<view style="margin-top: 20rpx;">
 								<text class="view_text">最近更新 : {{item.bookUpdate}}</text>
-								<text class="view_text">最新章节 : {{item.bookChapter}}<text v-if="item.isUpdate=='false'?false:true" style="color:red;margin-left: 20rpx;" >新</text></text>
+								<text class="view_text">最新章节 : {{item.bookChapter}}</text>
 							</view>
 						</view>
 					</view>
@@ -69,18 +72,27 @@
 			try {
 				var adataList = uni.getStorageSync("list");
 				this.list = adataList;
-				 this.updateBookChapter();
+				this.updateBookChapter();
 			} catch (e) {
 				console.log('获取书架书籍列表失败!' + e)
+			}
+		},
+		onHide() {
+			try {
+				 uni.setStorageSync("list",this.list);
+				console.log('书架书籍列表更新成功!');
+			} catch (e) {
+				console.log('书架书籍列表更新失败!' + e)
 			}
 		},
 		methods: {
 			triggerCollapse(item) {
 				var _this = this;
 				let info = getStrInfo(item);
-				for (var i =0 ;i<_this.list.length;i++) {
-					if(item.bookId = _this.list[i].bookId){
+				for (var i = 0; i < _this.list.length; i++) {
+					if (item.bookId == _this.list[i].bookId) {
 						_this.list[i].isUpdate = false;
+						break;
 					}
 				}
 				uni.navigateTo({
@@ -137,25 +149,25 @@
 			selectReverse(e) {
 				this.$refs.cGroup.selectReverse()
 			},
-			async updateBookChapter() {//更新章节列表
-			let adataList = this.list;
+			async updateBookChapter() { //更新章节列表
+				let adataList = this.list;
 				for (var i = 0; i < adataList.length; i++) {
 					let datainfo = adataList[i];
 					let url = datainfo.bookUrl;
 					let code = datainfo.code;
 					let homeUrl = datainfo.homeUrl;
 					var mylist = await bookChapterList(url, code, homeUrl);
-					if(datainfo.newbookUrl!=mylist[mylist.length-1].chapterUrl){
-						 datainfo.newbookUrl = mylist[mylist.length-1].chapterUrl;
-						 datainfo.bookChapter = mylist[mylist.length-1].chapterName;
-						 //更新目录
-						 try {
-						 	uni.setStorageSync(datainfo.bookId,mylist);
-							console.log(datainfo.bookName+'更新目录成功!' )
-						 } catch (e) {
-						 	console.log(datainfo.bookName+'更新目录失败!' + e)
-						 }
-						 datainfo.isUpdate = true;
+					if (datainfo.newbookUrl != mylist[mylist.length - 1].chapterUrl) {
+						datainfo.newbookUrl = mylist[mylist.length - 1].chapterUrl;
+						datainfo.bookChapter = mylist[mylist.length - 1].chapterName;
+						//更新目录
+						try {
+							uni.setStorageSync(datainfo.bookId, mylist);
+							console.log(datainfo.bookName + '更新目录成功!')
+						} catch (e) {
+							console.log(datainfo.bookName + '更新目录失败!' + e)
+						}
+						datainfo.isUpdate = true;
 					}
 				}
 			}

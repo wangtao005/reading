@@ -2,7 +2,7 @@
 	<view class="view_padding">
 		<view class="view_row">
 			<view class="img-view_box">
-				<image class="img-view" :src="info.bookImgUrl" @error="imageError"></image>
+				<image class="img-view" :src="info.bookImgUrl"  mode="aspectFit" @error="imageError"></image>
 			</view>
 			<view class="view_text_box flex-item">
 				<text style="font-size: 45rpx;font-weight: bold;">{{info.bookName}}</text>
@@ -223,7 +223,6 @@
 	}
 
 	.view_row {
-		display: flex;
 		flex-direction: row;
 	}
 
@@ -233,9 +232,10 @@
 
 	.img-view {
 		width: 155rpx;
-		/* height: 190rpx; */
+		height: 190rpx;
 		background-image: url(../../../static/bookImg/nocover.jpg);
-		background-size: 155rpx 190rpx;
+		/* background-size: 155rpx 190rpx; */
+		/* background-size: cover; */
 	}
 
 	.view_text_box {
