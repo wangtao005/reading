@@ -19,7 +19,7 @@
 		</view>
 		<view>
 			<uni-popup ref="seting" type="share">
-				<uni-popup-seting title="设置" @select="select"></uni-popup-seting>
+				<uni-popup-seting @select="select"></uni-popup-seting>
 			</uni-popup>
 		</view>
 		<uni-drawer :visible="true" ref="myDarwer">
