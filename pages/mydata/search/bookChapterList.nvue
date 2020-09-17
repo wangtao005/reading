@@ -1,5 +1,4 @@
 <template>
-
 	<view>
 		<view>
 			<text class="book_name">{{bookName}}</text>
@@ -45,6 +44,7 @@
 			this.windowWidth2 = (uni.getSystemInfoSync().windowWidth) * 0.8.toString() + "px";
 			this.info = getObjectInfo(e);
 			this.bookName = e.bookName
+			// console.log(1,new Date().getTime().toString());
 			this.chapterList(e.bookUrl, e.code, e.homeUrl);
 		},
 		methods: {
@@ -53,6 +53,8 @@
 				var oldChapterList = uni.getStorageSync(this.info.bookId); //查看是否已经缓存
 				if(!oldChapterList){
 					oldChapterList = [];
+				}else{
+					this.list = oldChapterList;
 				}
 				var mylist = await bookChapterList(url, code, homeUrl); //获取所有章节列表
 				if (oldChapterList.length < mylist.length) {

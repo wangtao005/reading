@@ -1,12 +1,12 @@
 <template>
-	<view :style="{backgroundColor: backgroundColor}" >
+	<view :style="{backgroundColor: backgroundColor}">
 		<uni-nav-bar v-if="isShow" left-icon="back" leftText="返回" rightText="菜单" @clickLeft="myBookShelf" @clickRight="seting"
 		 background-color="#007AFF" color='#FFFFFF' fixed="true" status-bar="true">
 			<view style="margin-left: 90rpx;" @click="upChapter"><text style="color: #FFFFFF;font-size: 34rpx;">上一章</text></view>
 			<view style="margin-left: 80rpx;" @click="downchapter"><text style="color: #FFFFFF;font-size: 34rpx;">下一章</text></view>
 		</uni-nav-bar>
-		<view @longpress="showSelectInfo" @tap="myClick" >
-			<text class="my_margin_contentText" :style="{fontSize: fontSize}" decode="true">{{contentText}}</text>
+		<view @longpress="showSelectInfo" @tap="myClick">
+			<text class="my_margin_contentText" :style="{fontSize: fontSize+'px'}" decode="true">{{contentText}}</text>
 		</view>
 		<view v-if="showFontSizeButton" class="slider-box-bottom" :style="{width:windowWidth}">
 			<slider value="40" @change="sliderChange" min="12" max="70" activeColor="#FFCC33" backgroundColor="#000000"
@@ -19,7 +19,7 @@
 		</view>
 		<view>
 			<uni-popup ref="seting" type="share">
-				<uni-popup-seting @select="select"></uni-popup-seting>
+				<uni-popup-seting @select="select" @menuSelect="menuSelect"></uni-popup-seting>
 			</uni-popup>
 		</view>
 		<uni-drawer :visible="true" ref="myDarwer">
@@ -70,7 +70,7 @@
 			return {
 				windowWidth: '', //屏幕宽度
 				backgroundColor: 'rgb(204, 232, 207)',
-				fontSize: 20 + 'px',
+				fontSize: 20,
 				showFontSizeButton: false,
 				titleText: '',
 				contentText: '',
@@ -85,7 +85,12 @@
 		},
 		onLoad: function(e) { //option为object类型，会序列化上个页面传递的参数
 			this.windowWidth = (uni.getSystemInfoSync().windowWidth) * 1.0.toString() + "px";
+			//获取字体大小并且设置,否则设置默认值
+			let mySize = uni.getStorageSync("fontSize");
+			this.fontSize = mySize != '' ? mySize : 20;
+			//组织数据
 			this.info = getObjectInfo(e);
+			//获取章节数据
 			this.getText();
 			// #ifdef APP-PLUS  
 			plus.navigator.setFullscreen(true); //单个页面隐藏状态栏 全屏显示 false 非全屏
@@ -109,10 +114,8 @@
 			this.pageShow = false
 			if (this.list.length > 0) {
 				try {
-
 					uni.setStorageSync(this.info.bookId, this.list) //退出页面时将目录数据保存
 					console.log(this.info.bookName + '目录更新成功!')
-
 				} catch (e) {
 					console.log('目录更新失败!' + e)
 				}
@@ -266,7 +269,6 @@
 
 			},
 			async upChapter(isNextChapter) { //上一章
-				this.showSelectInfo();
 				if (this.list.length == 0) {
 					uni.showToast({
 						title: '哎呀........没有可用信息! 加入书架后在试试',
@@ -336,6 +338,23 @@
 				this.$refs.popup.close();
 				this.showSelectInfo();
 			},
+			menuSelect(e) { //设置 
+				var _this = this;
+				if (e.type === 'bookList') {
+					_this.chapterList();
+				} else if (e.type === 'up') {
+					_this.upChapter();
+				} else if (e.type === 'down') {
+					_this.downchapter();
+				} else if (e.type === 'bookSize_sim') {
+					_this.fontSize = e.value;
+				} else if (e.type === 'bookSize_big') {
+					_this.fontSize = e.value;
+				} else if (e.type === 'bookSize_default') {
+					_this.fontSize = e.value;
+				}
+
+			},
 			fontSizeSet() { //是否显示字体设置
 				let _this = this;
 				this.showFontSizeButton = true;
@@ -363,8 +382,8 @@
 				}, 10000);
 			},
 			myClick(e) {
-				console.log(11, e)
-				if (e.detail.y> 190 && e.detail.y < 410) {
+				var _this = this;
+				if (e.detail.y > 190 && e.detail.y < 410) {
 					if (_this.isShow) {
 						// #ifdef APP-PLUS
 						plus.navigator.setFullscreen(true); //单个页面隐藏状态栏

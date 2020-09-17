@@ -3,78 +3,79 @@
 		<!-- <view class="uni-share-title"><text class="uni-share-title-text">{{title}}</text></view> -->
 		<view class="uni-share-content">
 			<view class="uni-share-content-box">
-				<!-- <view class="uni-share-content-item"  style="display: none" v-for="(item,index) in colorList" :key="index" @click.stop="select(item,index)">
+
+				<view class="uni-share-content-item" v-if="colorset" v-for="(item,index) in colorList" :key="index" @click.stop="select(item,index)">
 					<view class="uni-share-view" :style="{backgroundColor: item.color}"></view>
 					<text class="uni-share-text">{{item.text}}</text>
-				</view> -->
+				</view>
 
+				<view v-if="seting">
+					<view style="flex-direction: row;">
+						<view class="uni-share-content-item" style="width:50rpx;margin-left: 20rpx;">
+							<view class="uni-share-view-b" style="padding-top: 13rpx;padding-left: 15rpx;">
+								<image class="uni-share-view-b" style="width: 50rpx;height: 50rpx;" src="/static/myicon/lightSm.png"></image>
+							</view>
+						</view>
+						<view class="uni-share-content-item" :style="{width:windowWidth}">
+							<view :style="{width:windowWidth}">
+								<slider :value="sliderValue" @change="sliderChange" min="0" max="100" activeColor="#FFCC33" backgroundColor="#000000"
+								 block-color="#8A6DE9" block-size="18" show-value />
+							</view>
+						</view>
+						<view class="uni-share-content-item" style="width:60rpx;">
+							<view class="uni-share-view-b" style="padding-top: 5rpx;">
+								<image class="uni-share-view-b" style="width: 65rpx;height: 65rpx;" src="/static/myicon/lightBig.png"></image>
+							</view>
+						</view>
+						<view class="uni-share-content-item" style="width: 80px;">
+							<view class="uni-share-view" style="width: 40px;align-items: center;" @click="setBrightSys">
+								<text class="uni-share-text">系统</text>
+							</view>
+						</view>
+					</view>
 
-			<!-- 	<view style="flex-direction: row;">
-					<view class="uni-share-content-item" style="width:50rpx;margin-left: 20rpx;">
-						<view class="uni-share-view-b" style="padding-top: 13rpx;padding-left: 15rpx;">
-							<image class="uni-share-view-b" style="width: 50rpx;height: 50rpx;" src="/static/myicon/lightSm.png"></image>
+					<view class="setA">
+						<view class="uni-share-content-item" @click="menuSelect('bookSize_sim','')">
+							<view class="uni-share-view" style="align-items: center;">
+								<image class="uni-share-view-b" src="/static/myicon/sim.png"></image>
+							</view>
 						</view>
-					</view>
-					<view class="uni-share-content-item" :style="{width:windowWidth}">
-						<view :style="{width:windowWidth}">
-							<slider :value="sliderValue" @change="sliderChange" min="0" max="100" activeColor="#FFCC33" backgroundColor="#000000"
-							 block-color="#8A6DE9" block-size="18" show-value />
+						<view class="uni-share-content-item">
+							<text class="uni-share-view-b" style="padding-top: 15rpx;">{{fontSize}}</text>
 						</view>
-					</view>
-					<view class="uni-share-content-item" style="width:60rpx;">
-						<view class="uni-share-view-b" style="padding-top: 5rpx;">
-							<image class="uni-share-view-b" style="width: 65rpx;height: 65rpx;" src="/static/myicon/lightBig.png"></image>
+						<view class="uni-share-content-item" @click="menuSelect('bookSize_big','')">
+							<view class="uni-share-view" style="align-items: center;">
+								<image mode="aspectFit" class="uni-share-view-b" src="/static/myicon/big.png"></image>
+							</view>
 						</view>
-					</view>
-					<view class="uni-share-content-item"  style="width: 80px;" >
-						<view class="uni-share-view" style="width: 40px;align-items: center;" @click="setBrightSys">
-							<text class="uni-share-text">系统</text>
-						</view>
-					</view>
-				</view> -->
-				<view class="setA">
-					<view class="uni-share-content-item">
-						<view class="uni-share-view" style="align-items: center;">
-							<image class="uni-share-view-b" src="/static/myicon/sim.png"></image>
-						</view>
-					</view>
-					<view class="uni-share-content-item">
-						<text class="uni-share-view-b" style="padding-top: 15rpx;">14</text>
-					</view>
-					<view class="uni-share-content-item">
-						<view class="uni-share-view" style="align-items: center;">
-							<image mode="aspectFit" class="uni-share-view-b" src="/static/myicon/big.png"></image>
-						</view>
-					</view>
-					<view class="uni-share-content-item">
-						<view class="uni-share-view" style="align-items: center;width: 40px;">
-							<text class="uni-share-text">默认</text>
+						<view class="uni-share-content-item" @click="menuSelect('bookSize_default','')">
+							<view class="uni-share-view" style="align-items: center;width: 40px;">
+								<text class="uni-share-text">默认</text>
+							</view>
 						</view>
 					</view>
 				</view>
 
-
-
 				<view style="flex-direction: row;">
-					<view class="uni-share-content-item">
+					<view class="uni-share-content-item" @click="menuSelect('bookList','')">
 						<view class="uni-share-view-b">
 							<image class="uni-share-view-b" src="/static/myicon/list.png"></image>
 						</view>
 						<text class="uni-share-text">目录</text>
 					</view>
-					<view class="uni-share-content-item">
+					<view class="uni-share-content-item" @click="menuSelect('up','')">
 						<view class="uni-share-view-b">
 							<image class="uni-share-view-b" src="/static/myicon/up.png"></image>
 						</view>
 						<text class="uni-share-text">上一章</text>
 					</view>
-					<view class="uni-share-content-item">
+					<view class="uni-share-content-item" @click="menuSelect('down','')">
 						<view class="uni-share-view-b">
 							<image class="uni-share-view-b" src="/static/myicon/down.png"></image>
 						</view>
 						<text class="uni-share-text">下一章</text>
 					</view>
-					<view class="uni-share-content-item">
+					<view class="uni-share-content-item" @click="menuSelect('set','')">
 						<view class="uni-share-view-b">
 							<image class="uni-share-view-b" src="/static/myicon/setBlank.png"></image>
 						</view>
@@ -102,7 +103,10 @@
 		data() {
 			return {
 				windowWidth: "",
-				sliderValue:25,
+				sliderValue: 25,
+				fontSize: 20,
+				colorset: false,
+				seting: true,
 				colorList: [{
 					'color': 'rgb(238, 250, 238)',
 					'text': '淡绿',
@@ -134,15 +138,37 @@
 		},
 		created() {
 			this.windowWidth = (uni.getSystemInfoSync().windowWidth) * 0.6.toString() + "px";
+			let mySize = uni.getStorageSync("fontSize");
+			this.fontSize = mySize != '' ? mySize : 20;
 		},
 		methods: {
-			/**
-			 * 选择内容
-			 */
 			select(item, index) {
 				this.$emit('select', {
 					item,
 					index
+				}, () => {
+					this.popup.close()
+				})
+			},
+			menuSelect(type, value) { //类别,值,fontSize_sim,fontSize_big,bookSize_default    目录:bookList  上一章:up 下一章:down,设置set
+				if (type === 'bookSize_sim') {
+					if (this.fontSize - 1 >= 12) {
+						this.fontSize = this.fontSize - 1;
+					}
+				} else if (type === 'bookSize_big') {
+					this.fontSize = this.fontSize + 1;
+				} else if (type === 'bookSize_default') {
+					this.fontSize = 20;
+				} else if (type === 'set') {
+					var _this = this;
+					_this.seting = !_this.seting
+					_this.colorset = !_this.colorset
+				}
+				value = this.fontSize;
+				uni.setStorageSync("fontSize", value);
+				this.$emit('menuSelect', {
+					type,
+					value
 				}, () => {
 					this.popup.close()
 				})
@@ -153,24 +179,24 @@
 			close() {
 				this.popup.close()
 			},
-		// setBrightSys() {//屏幕亮度调节
-		// 	var _this = this;
-		// 	uni.getScreenBrightness({
-		// 		success: function(res) {
-		// 			_this.sliderValue =  parseInt(res.value*25);
-					
-		// 			console.log('success'+_this.sliderValue);
-		// 			console.log('success'+res.value);
-					
-		// 			uni.setScreenBrightness({
-		// 			    value: 0.5,
-		// 			    success: function () {
-		// 			        console.log('success');
-		// 			    }
-		// 			});
-		// 		}
-		// 	});
-		// }
+			// setBrightSys() {//屏幕亮度调节
+			// 	var _this = this;
+			// 	uni.getScreenBrightness({
+			// 		success: function(res) {
+			// 			_this.sliderValue =  parseInt(res.value*25);
+
+			// 			console.log('success'+_this.sliderValue);
+			// 			console.log('success'+res.value);
+
+			// 			uni.setScreenBrightness({
+			// 			    value: 0.5,
+			// 			    success: function () {
+			// 			        console.log('success');
+			// 			    }
+			// 			});
+			// 		}
+			// 	});
+			// }
 		}
 	}
 </script>
