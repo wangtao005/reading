@@ -4,6 +4,10 @@
 			<view class="uni-panel-h" @click="cleanStorage">
 				<text class="uni-panel-text">清除缓存</text>
 			</view>
+		</view><view class="uni-panel">
+			<view class="uni-panel-h" @click="111">
+				<text class="uni-panel-text">阅读模式开启全屏</text>
+			</view>
 		</view>
 		<view class="uni-panel" v-for="(item, index) in list" :key="item.id">
 			<view class="uni-panel-h" :class="item.open ? 'uni-panel-h-on' : ''" @click="triggerCollapse(index)">

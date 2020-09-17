@@ -1,11 +1,11 @@
 <template>
-	<view :style="{backgroundColor: backgroundColor}">
-		<uni-nav-bar v-if="isShow" left-icon="back" leftText="返回" rightText="菜单" @clickLeft="myBookShelf" @clickRight="openDarwer"
+	<view :style="{backgroundColor: backgroundColor}" >
+		<uni-nav-bar v-if="isShow" left-icon="back" leftText="返回" rightText="菜单" @clickLeft="myBookShelf" @clickRight="seting"
 		 background-color="#007AFF" color='#FFFFFF' fixed="true" status-bar="true">
 			<view style="margin-left: 90rpx;" @click="upChapter"><text style="color: #FFFFFF;font-size: 34rpx;">上一章</text></view>
 			<view style="margin-left: 80rpx;" @click="downchapter"><text style="color: #FFFFFF;font-size: 34rpx;">下一章</text></view>
 		</uni-nav-bar>
-		<view @longpress="showSelectInfo">
+		<view @longpress="showSelectInfo" @tap="myClick" >
 			<text class="my_margin_contentText" :style="{fontSize: fontSize}" decode="true">{{contentText}}</text>
 		</view>
 		<view v-if="showFontSizeButton" class="slider-box-bottom" :style="{width:windowWidth}">
@@ -15,6 +15,11 @@
 		<view>
 			<uni-popup ref="popup" type="share">
 				<uni-popup-share title="背景颜色" @select="select"></uni-popup-share>
+			</uni-popup>
+		</view>
+		<view>
+			<uni-popup ref="seting" type="share">
+				<uni-popup-seting title="设置" @select="select"></uni-popup-seting>
 			</uni-popup>
 		</view>
 		<uni-drawer :visible="true" ref="myDarwer">
@@ -43,12 +48,13 @@
 		getStrInfo,
 		getObjectInfo
 	} from '../search/bookBaseInfo.js'
-	import uniPopup from '@/components/uni-popup/uni-popup.vue'
-	import uniPopupMessage from '@/components/uni-popup/uni-popup-message.vue'
-	import uniPopupDialog from '@/components/uni-popup/uni-popup-dialog.vue'
-	import uniPopupShare from '@/components/uni-popup/uni-popup-share.vue'
-	import uniNavBar from "@/components/uni-nav-bar/uni-nav-bar.vue"
-	import uniDrawer from "@/components/uni-drawer/uni-drawer.vue"
+	import uniPopup from '@/pages/mydata/components/uni-popup/uni-popup.vue'
+	import uniPopupMessage from '@/pages/mydata/components/uni-popup/uni-popup-message.vue'
+	import uniPopupDialog from '@/pages/mydata/components/uni-popup/uni-popup-dialog.vue'
+	import uniPopupShare from '@/pages/mydata/components/uni-popup/uni-popup-share.vue'
+	import uniPopupSeting from '@/pages/mydata/components/uni-popup/uni-popup-seting.vue'
+	import uniNavBar from "@/pages/mydata/components/uni-nav-bar/uni-nav-bar.vue"
+	import uniDrawer from "@/pages/mydata/components/uni-drawer/uni-drawer.vue"
 	var clearTimeoutFlag;
 	export default {
 		components: {
@@ -57,7 +63,8 @@
 			uniPopup,
 			uniPopupMessage,
 			uniPopupDialog,
-			uniPopupShare
+			uniPopupShare,
+			uniPopupSeting
 		},
 		data() {
 			return {
@@ -82,7 +89,7 @@
 			this.getText();
 			// #ifdef APP-PLUS  
 			plus.navigator.setFullscreen(true); //单个页面隐藏状态栏 全屏显示 false 非全屏
-			plus.navigator.hideSystemNavigation();//隐藏安卓原生返回
+			plus.navigator.hideSystemNavigation(); //隐藏安卓原生返回
 			// #endif
 			var _this = this;
 			setTimeout(function() {
@@ -235,11 +242,11 @@
 				}
 			},
 			showSelectInfo() {
-				
+
 				if (this.isShow) {
 					// #ifdef APP-PLUS
 					plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
-					plus.navigator.hideSystemNavigation();//隐藏安卓原生返回
+					plus.navigator.hideSystemNavigation(); //隐藏安卓原生返回
 					// #endif
 				} else {
 					// #ifdef APP-PLUS
@@ -247,7 +254,7 @@
 					windowFull(4);
 					// #endif
 				}
-			
+
 				this.isShow = !this.isShow;
 				this.$refs.myDarwer.close();
 			},
@@ -319,6 +326,11 @@
 				this.$refs.popup.open();
 				this.showSelectInfo();
 			},
+			seting() { //设置
+				this.isShow = false;
+				this.$refs.seting.open();
+				this.showSelectInfo();
+			},
 			select(e) { //设置背景色
 				this.backgroundColor = e.item.color;
 				this.$refs.popup.close();
@@ -349,7 +361,26 @@
 				clearTimeoutFlag = setTimeout(function() {
 					_this.showFontSizeButton = false;
 				}, 10000);
-			}
+			},
+			myClick(e) {
+				console.log(11, e)
+				if (e.detail.y> 190 && e.detail.y < 410) {
+					if (_this.isShow) {
+						// #ifdef APP-PLUS
+						plus.navigator.setFullscreen(true); //单个页面隐藏状态栏
+						plus.navigator.hideSystemNavigation(); //隐藏安卓原生返回
+						// #endif
+					} else {
+						// #ifdef APP-PLUS
+						plus.navigator.setFullscreen(false); //状态栏显示
+						windowFull(4);
+						// #endif
+					}
+					_this.isShow = !_this.isShow;
+					_this.$refs.myDarwer.close();
+				}
+			},
+
 		},
 		async onReachBottom() { //上拉触底事件
 			let _this = this;
@@ -454,14 +485,15 @@
 				console.log('滚动位置设置失败!' + e)
 			}
 		},
-		onBackPress(options) {//系统返回按钮
+		onBackPress(options) { //系统返回按钮
 			if (options.from === 'backbutton') {
 				// #ifdef APP-PLUS
 				plus.navigator.setFullscreen(false); //状态栏显示
 				// #endif
 				return false;
 			}
-		}
+		},
+
 	}
 </script>
 
