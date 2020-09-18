@@ -73,7 +73,7 @@
 						<view class="uni-share-view-b">
 							<image class="uni-share-view-b" src="/static/myicon/bgColor.png"></image>
 						</view>
-						<text class="uni-share-text">背景色</text>
+						<text class="uni-share-text">颜色</text>
 					</view>
 				</view>
 			</view>

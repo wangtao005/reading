@@ -6,7 +6,7 @@
 			<view style="margin-left: 80rpx;" @click="downchapter"><text style="color: #FFFFFF;font-size: 34rpx;">下一章</text></view>
 		</uni-nav-bar>
 		<view @longpress="showSelectInfo" @tap="myClick">
-			<text class="my_margin_contentText" :style="{fontSize: fontSize+'px'}" decode="true">{{contentText}}</text>
+			<text class="my_margin_contentText" :style="{fontSize: fontSize+'px',color:fontColor}" decode="true">{{contentText}}</text>
 		</view>
 		<view v-if="showFontSizeButton" class="slider-box-bottom" :style="{width:windowWidth}">
 			<slider value="40" @change="sliderChange" min="12" max="70" activeColor="#FFCC33" backgroundColor="#000000"
@@ -14,7 +14,7 @@
 		</view>
 		<view>
 			<uni-popup ref="popup" type="share">
-				<uni-popup-share title="背景颜色" @select="select"></uni-popup-share>
+				<uni-popup-share title="背景颜色 与 字体颜色" @select="select"></uni-popup-share>
 			</uni-popup>
 		</view>
 		<view>
@@ -27,12 +27,12 @@
 				<view class="uni-title"></view>
 				<view class="textcenter" style="margin-top: 150rpx;" @click="myBookShelf">书架</view>
 				<view class="textcenter" @click="search">书籍搜索</view>
-				<view class="textcenter" @click="bgColor">背景颜色</view>
+			<!-- 	<view class="textcenter" @click="bgColor">背景颜色</view>
 				<view class="textcenter" @click="fontSizeSet">字体大小</view>
 				<view class="textcenter" @click="chapterList">章节目录</view>
 				<view class="textcenter" @click="upChapter">上一章</view>
 				<view class="textcenter" @click="downchapter">下一章</view>
-				<view class="textcenter" @click="cancel">取消</view>
+				<view class="textcenter" @click="cancel">取消</view> -->
 			</view>
 		</uni-drawer>
 	</view>
@@ -70,6 +70,7 @@
 			return {
 				windowWidth: '', //屏幕宽度
 				backgroundColor: 'rgb(204, 232, 207)',
+				fontColor: 'rgb(0, 0, 0)',
 				fontSize: 20,
 				showFontSizeButton: false,
 				titleText: '',
@@ -357,18 +358,9 @@
 					setTimeout(function(){
 							_this.bgColor();
 					},300);
-				
 				}
-
 			},
-			fontSizeSet() { //是否显示字体设置
-				let _this = this;
-				this.showFontSizeButton = true;
-				clearTimeoutFlag = setTimeout(function() {
-					_this.showFontSizeButton = false;
-				}, 10000);
-				this.showSelectInfo();
-			},
+		 
 			myBookShelf() { //书架
 				uni.switchTab({
 					url: '/pages/tabBar/component/component'
@@ -377,16 +369,7 @@
 			openDarwer() { //菜单栏
 				this.$refs.myDarwer.open();
 			},
-			sliderChange(e) { //滑动改变
-				var _this = this;
-				if (clearTimeoutFlag) {
-					clearTimeout(clearTimeoutFlag);
-				}
-				this.fontSize = e.detail.value / 2 + 'px';
-				clearTimeoutFlag = setTimeout(function() {
-					_this.showFontSizeButton = false;
-				}, 10000);
-			},
+		 
 			myClick(e) {
 				var _this = this;
 				if (e.detail.y > 190 && e.detail.y < 410) {

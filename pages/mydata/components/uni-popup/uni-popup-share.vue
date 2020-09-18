@@ -2,16 +2,34 @@
 	<view class="uni-popup-share">
 		<view class="uni-share-title"><text class="uni-share-title-text">{{title}}</text></view>
 		<view class="uni-share-content">
-			<view class="uni-share-content-box">
-				<view class="uni-share-content-item" v-for="(item,index) in colorList" :key="index" @click.stop="select(item,index)">
+			<!-- 	<view class="uni-share-content-box">
+				<view class="uni-share-content-item"   v-for="(item,index) in colorList" :key="index" @click.stop="select(item,index)">
 					<view class="uni-share-view" :style="{backgroundColor: item.color}"></view>
 					<text class="uni-share-text">{{item.text}}</text>
 				</view>
+			</view> -->
+
+			<view>
+				<scroll-view class="scroll-view_H uni-share-content-box" scroll-x="true">
+					<view class="scroll-view-item_H uni-share-content-item " v-for="(item,index) in colorList" :key="index"
+					 @click.stop="select(item,index)">
+						<view class="uni-share-view" :style="{backgroundColor: item.color}"></view>
+						<text class="uni-share-text">{{item.text}}</text>
+					</view>
+				</scroll-view>
+			</view>
+
+			<view>
+				<scroll-view class="scroll-view_H uni-share-content-box" scroll-x="true">
+					<view class="scroll-view-item_H uni-share-content-item " v-for="(item,index) in colorList" :key="index"
+					 @click.stop="select(item,index)">
+						<view class="uni-share-view" :style="{backgroundColor: item.color}"></view>
+						<text class="uni-share-text">{{item.text}}</text>
+					</view>
+				</scroll-view>
 			</view>
 		</view>
-		<view class="uni-share-button-box">
-			<button class="uni-share-button" @click="close">取消</button>
-		</view>
+
 	</view>
 </template>
 
@@ -28,32 +46,67 @@
 		data() {
 			return {
 				colorList: [{
-					'color': 'rgb(238, 250, 238)',
-					'text': '淡绿',
-				}, {
-					'color': 'rgb(204, 232, 207)',
-					'text': '草绿'
+						'color': 'rgb(253, 253, 253)',
+						'text': '河白色',
+					}, {
+						'color': 'rgb(250, 249, 222)',
+						'text': '杏仁黄',
+					}, {
+						'color': 'rgb(255, 242, 226)',
+						'text': '秋叶褐',
+					}, {
+						'color': 'rgb(253, 230, 224)',
+						'text': '胭脂红',
+					}, {
+						'color': 'rgb(227, 237, 205)',
+						'text': '青草绿',
+					}, {
+						'color': 'rgb(220, 226, 241)',
+						'text': '海天蓝',
+					},
+					{
+						'color': 'rgb(233, 235, 254)',
+						'text': '葛巾紫',
+					}, {
+						'color': 'rgb(234, 234, 239)',
+						'text': '极光灰',
+					}, {
+						'color': 'rgb(204, 232, 207)',
+						'text': '豆沙绿'
+					}, {
+						'color': 'rgb(0, 0, 0)',
+						'text': '纯黑',
+					}, {
+						'color': 'rgb(255, 255, 255)',
+						'text': '纯白',
+					}, {
+						'color': 'rgb(216, 216, 216)',
+						'text': '淡灰'
+					
+					}, {
+						'color': 'rgb(238, 250, 238)',
+						'text': '淡绿',
+					}, {
+						'color': 'rgb(233, 250, 255)',
+						'text': '淡蓝'
+					}, {
+						'color': 'rgb(255, 255, 237)',
+						'text': '明黄'
 
-				}, {
-					'color': 'rgb(233, 250, 255)',
-					'text': '淡蓝'
-				}, {
-					'color': 'rgb(255, 255, 237)',
-					'text': '明黄'
-
-				}, {
-					'color': 'rgb(245, 245, 220)',
-					'text': '米色'
-				}, {
-					'color': 'rgb(210, 180, 140)',
-					'text': '茶色',
-				}, {
-					'color': 'rgb(239, 239, 239)',
-					'text': '深灰'
-				}, {
-					'color': '',
-					'text': '原背景色'
-				}]
+					}, {
+						'color': 'rgb(245, 245, 220)',
+						'text': '米色'
+					}, {
+						'color': 'rgb(210, 180, 140)',
+						'text': '茶色',
+					}, {
+						'color': 'rgb(239, 239, 239)',
+						'text': '深灰'
+					}, {
+						'color': '',
+						'text': '原背景色'
+					}
+				]
 			}
 		},
 		created() {},
@@ -102,7 +155,7 @@
 		/* #ifndef APP-NVUE */
 		display: flex;
 		/* #endif */
-		flex-direction: row;
+		// flex-direction: row;
 		justify-content: center;
 		padding-top: 10px;
 	}
@@ -112,12 +165,12 @@
 		display: flex;
 		/* #endif */
 		flex-direction: row;
-		flex-wrap: wrap;
+		flex-wrap: nowrap;
 		width: 360px;
 	}
 
 	.uni-share-content-item {
-		width: 90px;
+		width: 80px;
 		/* #ifndef APP-NVUE */
 		display: flex;
 		/* #endif */
@@ -132,11 +185,11 @@
 	}
 
 	.uni-share-view {
-		width: 60px;
+		width: 30px;
 		height: 30px;
 		border-color: #3B4144;
 		border-width: 1rpx;
-		border-radius: 5px;
+		border-radius: 15px;
 	}
 
 	.uni-share-text {
@@ -162,5 +215,27 @@
 
 	.uni-share-button::after {
 		border-radius: 50px;
+	}
+
+	.scroll-Y {
+		height: 300rpx;
+	}
+
+	.scroll-view_H {
+		white-space: nowrap;
+		width: 100%;
+	}
+
+	.scroll-view-item {
+		height: 30rpx;
+		align-items: center;
+		font-size: 36rpx;
+	}
+
+	.scroll-view-item_H {
+		display: inline-block;
+		width: 30%;
+		align-items: center;
+		font-size: 36rpx;
 	}
 </style>
