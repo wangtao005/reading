@@ -130,7 +130,7 @@
 						clearTimeout(this.msgtimer)
 						this.msgtimer = setTimeout(() => {
 							this.customOpen && this.customOpen()
-						}, 100)
+						}, 300)
 						this.$emit('change', {
 							show: true,
 							type: this.type
@@ -275,7 +275,7 @@
 	.content-ani {
 		// transition: transform 0.3s;
 		transition-property: transform, opacity;
-		transition-duration: 0.2s;
+		transition-duration: 0.3s;
 	}
 
 

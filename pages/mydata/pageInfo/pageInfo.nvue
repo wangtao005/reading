@@ -352,6 +352,12 @@
 					_this.fontSize = e.value;
 				} else if (e.type === 'bookSize_default') {
 					_this.fontSize = e.value;
+				}else if (e.type === 'set') {
+					this.$refs.seting.close();
+					setTimeout(function(){
+							_this.bgColor();
+					},300);
+				
 				}
 
 			},

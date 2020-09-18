@@ -3,13 +3,7 @@
 		<!-- <view class="uni-share-title"><text class="uni-share-title-text">{{title}}</text></view> -->
 		<view class="uni-share-content">
 			<view class="uni-share-content-box">
-
-				<view class="uni-share-content-item" v-if="colorset" v-for="(item,index) in colorList" :key="index" @click.stop="select(item,index)">
-					<view class="uni-share-view" :style="{backgroundColor: item.color}"></view>
-					<text class="uni-share-text">{{item.text}}</text>
-				</view>
-
-				<view v-if="seting">
+				<view>
 					<view style="flex-direction: row;">
 						<view class="uni-share-content-item" style="width:50rpx;margin-left: 20rpx;">
 							<view class="uni-share-view-b" style="padding-top: 13rpx;padding-left: 15rpx;">
@@ -28,7 +22,7 @@
 							</view>
 						</view>
 						<view class="uni-share-content-item" style="width: 80px;">
-							<view class="uni-share-view" style="width: 40px;align-items: center;" @click="setBrightSys">
+							<view class="uni-share-view" style="width: 40px;align-items: center;padding-top: 5rpx;" @click="setBrightSys">
 								<text class="uni-share-text">系统</text>
 							</view>
 						</view>
@@ -49,7 +43,7 @@
 							</view>
 						</view>
 						<view class="uni-share-content-item" @click="menuSelect('bookSize_default','')">
-							<view class="uni-share-view" style="align-items: center;width: 40px;">
+							<view class="uni-share-view" style="align-items: center;width: 40px;padding-top: 5rpx;">
 								<text class="uni-share-text">默认</text>
 							</view>
 						</view>
@@ -77,63 +71,26 @@
 					</view>
 					<view class="uni-share-content-item" @click="menuSelect('set','')">
 						<view class="uni-share-view-b">
-							<image class="uni-share-view-b" src="/static/myicon/setBlank.png"></image>
+							<image class="uni-share-view-b" src="/static/myicon/bgColor.png"></image>
 						</view>
-						<text class="uni-share-text">设置</text>
+						<text class="uni-share-text">背景色</text>
 					</view>
 				</view>
 			</view>
 		</view>
-		<!-- 	<view class="uni-share-button-box">
-			<button class="uni-share-button" @click="close">取消</button>
-		</view> -->
 	</view>
 </template>
 
 <script>
 	export default {
 		name: 'UniPopupShare',
-		props: {
-			// title: {
-			// 	// type: String,
-			// 	// default: '背景颜色'
-			// }
-		},
+		props: {},
 		inject: ['popup'],
 		data() {
 			return {
 				windowWidth: "",
 				sliderValue: 25,
 				fontSize: 20,
-				colorset: false,
-				seting: true,
-				colorList: [{
-					'color': 'rgb(238, 250, 238)',
-					'text': '淡绿',
-				}, {
-					'color': 'rgb(204, 232, 207)',
-					'text': '草绿'
-
-				}, {
-					'color': 'rgb(233, 250, 255)',
-					'text': '淡蓝'
-				}, {
-					'color': 'rgb(255, 255, 237)',
-					'text': '明黄'
-
-				}, {
-					'color': 'rgb(245, 245, 220)',
-					'text': '米色'
-				}, {
-					'color': 'rgb(210, 180, 140)',
-					'text': '茶色',
-				}, {
-					'color': 'rgb(239, 239, 239)',
-					'text': '深灰'
-				}, {
-					'color': '',
-					'text': '原背景色'
-				}]
 			}
 		},
 		created() {
@@ -142,14 +99,6 @@
 			this.fontSize = mySize != '' ? mySize : 20;
 		},
 		methods: {
-			select(item, index) {
-				this.$emit('select', {
-					item,
-					index
-				}, () => {
-					this.popup.close()
-				})
-			},
 			menuSelect(type, value) { //类别,值,fontSize_sim,fontSize_big,bookSize_default    目录:bookList  上一章:up 下一章:down,设置set
 				if (type === 'bookSize_sim') {
 					if (this.fontSize - 1 >= 12) {
@@ -159,10 +108,6 @@
 					this.fontSize = this.fontSize + 1;
 				} else if (type === 'bookSize_default') {
 					this.fontSize = 20;
-				} else if (type === 'set') {
-					var _this = this;
-					_this.seting = !_this.seting
-					_this.colorset = !_this.colorset
 				}
 				value = this.fontSize;
 				uni.setStorageSync("fontSize", value);
